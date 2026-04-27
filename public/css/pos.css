@@ -1,0 +1,52 @@
+/* Ocultar elementos de Alpine.js antes de cargar */
+[x-cloak] { display: none !important; }
+
+/* Tipografía */
+.font-nunito { font-family: 'Nunito', sans-serif; }
+
+/* Animación suave para modales */
+@keyframes fadeIn {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+}
+.animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+
+/* Animación sutil para el fondo decorativo */
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-float-delayed { animation: float 8s ease-in-out infinite; animation-delay: 2s; }
+
+/* Scrollbar limpio y unificado */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { 
+    background: #cbd5e1; 
+    border-radius: 10px; 
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Ocultar flechas de inputs numéricos */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+
+/* ESTILOS EXCLUSIVOS PARA IMPRESIÓN (ADAPTADO A POINT SMART 2 - 58mm) */
+@media screen {
+    #zona-impresion { display: none !important; }
+}
+@media print {
+    body * { visibility: hidden; }
+    #zona-impresion, #zona-impresion * { visibility: visible; }
+    #zona-impresion {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 58mm !important;
+        margin: 0 !important;
+        padding: 5px !important;
+    }
+    @page { margin: 0; }
+}

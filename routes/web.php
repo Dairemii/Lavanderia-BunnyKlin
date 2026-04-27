@@ -2,105 +2,94 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PagoController;
+use App\Http\Controllers\BrickPagoController;
+use Illuminate\Support\Facades\Http;
 
-// dashboard pages
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
+// =========================================================
+// 1. SECCIÓN PRINCIPAL
+// =========================================================
+
 Route::get('/', function () {
-    return view('pages.dashboard.ecommerce', ['title' => 'E-commerce Dashboard']);
-})->name('dashboard');
+    return view('pages.pos', ['title' => 'Punto de Venta']);
+})->name('pos');
 
-// calender pages
-Route::get('/calendar', function () {
-    return view('pages.calender', ['title' => 'Calendar']);
-})->name('calendar');
+Route::get('/historial', function () {
+    return view('pages.historial', ['title' => 'Historial de Ventas']);
+})->name('historial');
 
-// profile pages
-Route::get('/profile', function () {
-    return view('pages.profile', ['title' => 'Profile']);
-})->name('profile');
+Route::get('/maquinas', function () {
+    return view('pages.blank', ['title' => 'Máquinas IoT']); 
+})->name('maquinas');
 
-// form pages
-Route::get('/form-elements', function () {
-    return view('pages.form.form-elements', ['title' => 'Form Elements']);
-})->name('form-elements');
+// =========================================================
+// 2. SECCIÓN CATÁLOGOS
+// =========================================================
 
-// tables pages
-Route::get('/basic-tables', function () {
-    return view('pages.tables.basic-tables', ['title' => 'Basic Tables']);
-})->name('basic-tables');
+Route::get('/servicios', function () {
+    return view('pages.servicios', ['title' => 'Servicios de Lavado']);
+})->name('servicios');
 
-// pages
+Route::get('/productos', function () {
+    return view('pages.blank', ['title' => 'Productos Extra']);
+})->name('productos');
 
-Route::get('/blank', function () {
-    return view('pages.blank', ['title' => 'Blank']);
-})->name('blank');
+// =========================================================
+// 3. SECCIÓN OPERACIÓN
+// =========================================================
 
-// error pages
-Route::get('/error-404', function () {
-    return view('pages.errors.error-404', ['title' => 'Error 404']);
-})->name('error-404');
+Route::get('/insumos', function () {
+    return view('pages.blank', ['title' => 'Inventario de Insumos']);
+})->name('insumos');
 
-// chart pages
-Route::get('/line-chart', function () {
-    return view('pages.chart.line-chart', ['title' => 'Line Chart']);
-})->name('line-chart');
+Route::get('/clientes', function () {
+    return view('pages.blank', ['title' => 'Gestión de Clientes']);
+})->name('clientes');
 
-Route::get('/bar-chart', function () {
-    return view('pages.chart.bar-chart', ['title' => 'Bar Chart']);
-})->name('bar-chart');
+Route::get('/caja', function () {
+    return view('pages.blank', ['title' => 'Corte de Caja']);
+})->name('caja');
 
+// =========================================================
+// RUTAS ORIGINALES DE LA PLANTILLA TAILADMIN
+// =========================================================
 
-// authentication pages
-Route::get('/signin', function () {
-    return view('pages.auth.signin', ['title' => 'Sign In']);
-})->name('signin');
+Route::get('/calendar', function () { return view('pages.calender', ['title' => 'Calendar']); })->name('calendar');
+Route::get('/profile', function () { return view('pages.profile', ['title' => 'Profile']); })->name('profile');
+Route::get('/form-elements', function () { return view('pages.form.form-elements', ['title' => 'Form Elements']); })->name('form-elements');
+Route::get('/basic-tables', function () { return view('pages.tables.basic-tables', ['title' => 'Basic Tables']); })->name('basic-tables');
+Route::get('/blank', function () { return view('pages.blank', ['title' => 'Blank']); })->name('blank');
+Route::get('/error-404', function () { return view('pages.errors.error-404', ['title' => 'Error 404']); })->name('error-404');
 
-Route::get('/signup', function () {
-    return view('pages.auth.signup', ['title' => 'Sign Up']);
-})->name('signup');
+// ---------- AUTH ----------
+Route::get('/signin', function () { return view('pages.auth.signin', ['title' => 'Sign In']); })->name('signin');
+Route::get('/signup', function () { return view('pages.auth.signup', ['title' => 'Sign Up']); })->name('signup');
 
-// ui elements pages
-Route::get('/alerts', function () {
-    return view('pages.ui-elements.alerts', ['title' => 'Alerts']);
-})->name('alerts');
+// =========================================================
+// MERCADO PAGO E INTEGRACIONES
+// =========================================================
 
-Route::get('/avatars', function () {
-    return view('pages.ui-elements.avatars', ['title' => 'Avatars']);
-})->name('avatars');
+// Checkout Pro
+Route::post('/pagar', [PagoController::class, 'iniciarPago'])->name('pago.iniciar');
+Route::get('/pago/exito', [PagoController::class, 'pagoExitoso'])->name('pago.exito');
+Route::get('/pago/fallo', [PagoController::class, 'pagoFallido'])->name('pago.fallo');
+Route::get('/pago/pendiente', [PagoController::class, 'pagoPendiente'])->name('pago.pendiente');
 
-Route::get('/badge', function () {
-    return view('pages.ui-elements.badges', ['title' => 'Badges']);
-})->name('badges');
+// Checkout Bricks
+Route::get('/pagar-con-tarjeta', [BrickPagoController::class, 'mostrarFormulario'])->name('brick.form');
+Route::post('/procesar-pago', [BrickPagoController::class, 'procesarPago'])->name('brick.procesar');
 
-Route::get('/buttons', function () {
-    return view('pages.ui-elements.buttons', ['title' => 'Buttons']);
-})->name('buttons');
+// Consultar terminales físicas de Mercado Pago Point
+Route::get('/mis-terminales', function () {
+    $response = Http::withHeaders([
+        'Authorization' => 'Bearer TU_ACCESS_TOKEN_DE_PRODUCCION' 
+    ])->get('https://api.mercadopago.com/point/integration-api/devices');
 
-Route::get('/image', function () {
-    return view('pages.ui-elements.images', ['title' => 'Images']);
-})->name('images');
-
-Route::get('/videos', function () {
-    return view('pages.ui-elements.videos', ['title' => 'Videos']);
-})->name('videos');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return $response->json();
+});

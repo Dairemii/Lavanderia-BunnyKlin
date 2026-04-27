@@ -2,6 +2,9 @@ import './bootstrap';
 import Alpine from 'alpinejs';
 import ApexCharts from 'apexcharts';
 
+//para importar pdf
+import { jsPDF } from "jspdf";
+
 // flatpickr
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
@@ -14,6 +17,10 @@ window.Alpine = Alpine;
 window.ApexCharts = ApexCharts;
 window.flatpickr = flatpickr;
 window.FullCalendar = Calendar;
+
+//pdf 
+
+window.jsPDF = jsPDF;
 
 Alpine.start();
 

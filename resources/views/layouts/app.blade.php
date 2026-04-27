@@ -6,15 +6,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'Dashboard' }} | TailAdmin - Laravel Tailwind CSS Admin Dashboard Template</title>
+    <title>{{ $title ?? 'Dashboard' }} | BunnyKlin</title>
 
-    <!-- Scripts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Alpine.js -->
-    {{-- <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script> --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <!-- Theme Store -->
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif !important;
+            background-color: #F4F8FC !important; /* Azul muy pálido para el fondo */
+            color: #1E55AA !important; /* Main Blue Oficial */
+        }
+        
+        body.dark {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+        }
+
+        /* --- ESTILOS DEL MENÚ LATERAL --- */
+        .menu-item {
+            border-radius: 0.75rem !important; 
+            margin-bottom: 0.35rem !important;
+            font-weight: 700 !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        /* Items inactivos */
+        .menu-item-inactive {
+            color: #D1E4F9 !important; 
+        }
+        
+        .menu-item-inactive:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important; 
+            color: #FFFFFF !important; 
+        }
+        
+        /* Item Activo */
+        .menu-item-active {
+            background-color: #FFFFFF !important; 
+            color: #1E55AA !important; /* Main Blue Oficial */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Iconos del menú */
+        .menu-item-icon-inactive {
+            color: #7DA6D4 !important; 
+        }
+        .menu-item-inactive:hover .menu-item-icon-inactive {
+            color: #FFFFFF !important; 
+        }
+        .menu-item-icon-active {
+            color: #1E55AA !important; /* Main Blue Oficial */
+        }
+        
+        /* Ocultar flechas de inputs numéricos */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+    </style>
+
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.store('theme', {
@@ -36,29 +90,26 @@
                     const body = document.body;
                     if (this.theme === 'dark') {
                         html.classList.add('dark');
-                        body.classList.add('dark', 'bg-gray-900');
+                        body.classList.add('dark');
                     } else {
                         html.classList.remove('dark');
-                        body.classList.remove('dark', 'bg-gray-900');
+                        body.classList.remove('dark');
                     }
                 }
             });
 
             Alpine.store('sidebar', {
-                // Initialize based on screen size
-                isExpanded: window.innerWidth >= 1280, // true for desktop, false for mobile
+                isExpanded: window.innerWidth >= 1280,
                 isMobileOpen: false,
                 isHovered: false,
 
                 toggleExpanded() {
                     this.isExpanded = !this.isExpanded;
-                    // When toggling desktop sidebar, ensure mobile menu is closed
                     this.isMobileOpen = false;
                 },
 
                 toggleMobileOpen() {
                     this.isMobileOpen = !this.isMobileOpen;
-                    // Don't modify isExpanded when toggling mobile menu
                 },
 
                 setMobileOpen(val) {
@@ -66,7 +117,6 @@
                 },
 
                 setHovered(val) {
-                    // Only allow hover effects on desktop when sidebar is collapsed
                     if (window.innerWidth >= 1280 && !this.isExpanded) {
                         this.isHovered = val;
                     }
@@ -75,7 +125,6 @@
         });
     </script>
 
-    <!-- Apply dark mode immediately to prevent flash -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
@@ -83,10 +132,10 @@
             const theme = savedTheme || systemTheme;
             if (theme === 'dark') {
                 document.documentElement.classList.add('dark');
-                document.body.classList.add('dark', 'bg-gray-900');
+                document.body.classList.add('dark');
             } else {
                 document.documentElement.classList.remove('dark');
-                document.body.classList.remove('dark', 'bg-gray-900');
+                document.body.classList.remove('dark');
             }
         })();
     </script>
@@ -111,7 +160,7 @@
     <x-common.preloader/>
     {{-- preloader end --}}
 
-    <div class="min-h-screen xl:flex">
+    <div class="min-h-screen xl:flex selection:bg-[#FFE63C] selection:text-[#1E55AA]">
         @include('layouts.backdrop')
         @include('layouts.sidebar')
 
@@ -121,10 +170,8 @@
                 'xl:ml-[90px]': !$store.sidebar.isExpanded && !$store.sidebar.isHovered,
                 'ml-0': $store.sidebar.isMobileOpen
             }">
-            <!-- app header start -->
             @include('layouts.app-header')
-            <!-- app header end -->
-            <div class="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+            <div class="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6 relative z-10">
                 @yield('content')
             </div>
         </div>
