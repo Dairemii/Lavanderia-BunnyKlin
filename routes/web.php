@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\BrickPagoController;
+use App\Http\Controllers\CalendarController;
 use Illuminate\Support\Facades\Http;
 // Imports para ruta principal /
 use App\Models\Service;
@@ -79,6 +80,7 @@ Route::get('/caja', function () {
     return view('pages.blank', ['title' => 'Corte de Caja']);
 })->name('caja');
 
+Route::get('/newcalendar', [CalendarController::class, 'index'])->name('calendar.index');
 
 // =========================================================
 // RUTAS DE LA PLANTILLA Y MERCADO PAGO
