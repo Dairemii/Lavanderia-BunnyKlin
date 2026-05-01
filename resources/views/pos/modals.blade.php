@@ -1,74 +1,100 @@
-    {{-- MODAL CRUD --}}
-    <div x-show="itemModal.open" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-[#1E55AA]/40 backdrop-blur-sm" x-transition.opacity.duration.200ms>
-        <div class="absolute inset-0" @click="closeModal()"></div>
-        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in border border-[#1E55AA]/10">
-            
-            <div class="p-6 text-center border-b border-slate-100" :class="itemModal.mode === 'delete' ? 'bg-rose-50' : 'bg-[#F4F8FC]'">
-                <h2 class="text-2xl font-black tracking-tight" :class="itemModal.mode === 'delete' ? 'text-rose-700' : 'text-[#1E55AA]'" x-text="itemModal.mode === 'add' ? 'Nuevo Elemento' : (itemModal.mode === 'edit' ? 'Editar Elemento' : 'Confirmar Eliminación')"></h2>
-            </div>
-
-            <div class="p-8 bg-white">
-                <div x-show="itemModal.mode !== 'delete'" class="space-y-5">
+{{-- Modal de Edición/Creación de Productos del POS --}}
+<div x-cloak x-show="itemModal.open" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
+    <div class="bg-white rounded-3xl shadow-2xl border-2 border-slate-100 w-full max-w-md overflow-hidden animate-fade-in" @click.stop>
+        <div class="p-6 border-b border-slate-100 bg-[#F4F8FC]">
+            <h3 class="text-2xl font-black text-[#1E55AA]" x-text="itemModal.mode === 'add' ? 'Nuevo Elemento' : (itemModal.mode === 'edit' ? 'Editar Elemento' : 'Eliminar Elemento')"></h3>
+        </div>
+        
+        <div class="p-6 space-y-4">
+            <template x-if="itemModal.mode !== 'delete'">
+                <form @submit.prevent="saveItem" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Nombre</label>
-                        <input type="text" x-model="itemModal.name" placeholder="Ej. Lavado Express" class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors">
+                        <label class="block text-sm font-black text-[#1E55AA] mb-1">Nombre</label>
+                        <input type="text" x-model="itemModal.name" required class="w-full rounded-xl border-2 border-slate-100 bg-white py-3 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
                     </div>
                     <div>
-                        <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Precio ($ MXN)</label>
-                        <input type="text" inputmode="decimal" x-model="itemModal.price" placeholder="0.00" class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold text-xl focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors">
+                        <label class="block text-sm font-black text-[#1E55AA] mb-1">Precio ($)</label>
+                        <input type="number" x-model="itemModal.price" required class="w-full rounded-xl border-2 border-slate-100 bg-white py-3 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" @click="closeModal()" class="flex-1 py-3 rounded-xl font-black text-[#1E55AA]/60 bg-slate-100 hover:bg-slate-200 transition-all">Cancelar</button>
+                        <button type="submit" class="flex-1 py-3 rounded-xl font-black text-white bg-emerald-500 shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all" x-text="itemModal.mode === 'add' ? 'Agregar' : 'Guardar'"></button>
+                    </div>
+                </form>
+            </template>
+
+            <template x-if="itemModal.mode === 'delete'">
+                <div class="text-center">
+                    <p class="text-lg font-bold text-slate-600 mb-6">¿Seguro que deseas eliminar <span class="text-[#1E55AA]" x-text="itemModal.name"></span>?</p>
+                    <div class="flex gap-3">
+                        <button @click="closeModal()" class="flex-1 py-3 rounded-xl font-black text-[#1E55AA]/60 bg-slate-100 hover:bg-slate-200 transition-all">Cancelar</button>
+                        <button @click="deleteItem()" class="flex-1 py-3 rounded-xl font-black text-white bg-rose-500 shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all">Eliminar</button>
                     </div>
                 </div>
-
-                <div x-show="itemModal.mode === 'delete'" class="text-center py-4 bg-rose-50/50 rounded-2xl border-2 border-rose-100">
-                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 text-rose-400 border border-rose-200">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                    </div>
-                    <p class="text-rose-900/70 text-lg mb-2 font-bold">¿Borrar este elemento?</p>
-                    <p class="text-2xl font-black text-rose-600" x-text="itemModal.name"></p>
-                </div>
-
-                <div class="flex gap-3 mt-8">
-                    <button @click="closeModal()" class="flex-1 py-3 px-4 bg-white border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors">Cancelar</button>
-                    <button x-show="itemModal.mode !== 'delete'" @click="saveItem()" class="flex-1 py-3 px-4 bg-[#1E55AA] text-white font-bold rounded-xl hover:bg-[#153e7d] transition-colors shadow-sm">Guardar</button>
-                    <button x-show="itemModal.mode === 'delete'" @click="deleteItem()" class="flex-1 py-3 px-4 bg-rose-500 text-white font-bold rounded-xl hover:bg-rose-600 transition-colors shadow-sm">Sí, borrar</button>
-                </div>
-            </div>
+            </template>
         </div>
     </div>
+</div>
 
-    {{-- MODAL PRE-CONFIRMACIÓN --}}
-    <div x-show="showPreConfirmacion" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1E55AA]/40 backdrop-blur-sm" x-transition.opacity.duration.200ms>
-        <div class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in border border-[#1E55AA]/10">
-            <div class="p-8 text-center bg-white">
-                <h2 class="text-2xl font-black text-[#1E55AA] mb-2">¿Confirmar cobro?</h2>
-                <p class="text-[#1E55AA]/70 font-bold mb-6">Total a pagar:</p>
-                <div class="text-5xl font-black text-[#1E55AA] mb-8" x-text="formatMoney(total)"></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <button @click="cancelarCheckout()" class="py-3 bg-white border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors">Cancelar</button>
-                    <button @click="confirmarCheckout()" class="py-3 bg-[#FFE63C] text-[#1E55AA] font-bold rounded-xl hover:bg-[#e6cf36] transition-colors shadow-sm">Sí, cobrar</button>
+{{-- Modal Pre-Confirmación (Checkout con Fechas) --}}
+<div x-cloak x-show="showPreConfirmacion" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
+    <div class="bg-white rounded-3xl shadow-2xl border-2 border-slate-100 w-full max-w-lg overflow-hidden animate-fade-in" @click.stop>
+        
+        <div class="p-6 border-b border-slate-100 bg-[#F4F8FC]">
+            <h3 class="text-2xl font-black text-[#1E55AA]">Completar Venta</h3>
+            <p class="text-[#1E55AA]/60 font-bold mt-1">Registra al cliente y su vigencia (Opcional)</p>
+        </div>
+        
+        <div class="p-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-black text-[#1E55AA] mb-1">Nombre del Cliente</label>
+                    <input type="text" x-model="clienteForm.nombre" placeholder="Público en General" class="w-full rounded-xl border-2 border-slate-100 bg-white py-2.5 px-3 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-black text-[#1E55AA] mb-1">Teléfono</label>
+                    <input type="text" x-model="clienteForm.telefono" placeholder="Opcional" class="w-full rounded-xl border-2 border-slate-100 bg-white py-2.5 px-3 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
                 </div>
             </div>
-        </div>
-    </div>
 
-    {{-- TICKET DE ÉXITO --}}
-    <div x-show="showConfirmacion" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1E55AA]/40 backdrop-blur-sm" x-transition.opacity.duration.200ms>
-        <div class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden animate-fade-in">
-            <div class="p-10 text-center bg-white">
-                <div class="w-20 h-20 bg-[#F4F8FC] rounded-full flex items-center justify-center mx-auto mb-6 text-[#1E55AA] border-4 border-[#1E55AA]/10">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+            <div class="grid grid-cols-2 gap-4 bg-[#F4F8FC] p-4 rounded-xl border border-[#1E55AA]/10 mt-2">
+                <div>
+                    <label class="block text-sm font-black text-[#1E55AA] mb-1">Inicio de Plan</label>
+                    <input type="date" x-model="clienteForm.inicio" class="w-full rounded-xl border-2 border-slate-100 bg-white py-2 px-3 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
                 </div>
-                <h2 class="text-3xl font-black text-[#1E55AA] mb-2">¡Venta Lista!</h2>
-                <p class="text-[#1E55AA]/70 font-bold mb-8">El cobro ha sido registrado exitosamente.</p>
-                <div class="bg-[#F4F8FC] p-6 rounded-2xl text-center mb-8 border border-[#1E55AA]/10">
-                    <p class="text-xs font-black text-[#1E55AA]/50 uppercase tracking-widest mb-1">Total Cobrado</p>
-                    <p class="text-5xl font-black text-[#1E55AA]" x-text="formatMoney(ultimaVenta?.total || 0)"></p>
-                    <p class="text-sm font-bold text-[#1E55AA]/50 mt-3" x-text="'Folio: ' + ultimaVenta?.folio"></p>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <button @click="cerrarConfirmacion()" class="py-4 bg-white border-2 border-[#1E55AA]/20 text-[#1E55AA] font-bold rounded-xl hover:bg-[#F4F8FC] transition-colors">Nueva Venta</button>
-                    <a href="{{ route('historial') }}" class="py-4 bg-[#1E55AA] text-white font-bold rounded-xl hover:bg-[#153e7d] transition-colors shadow-sm flex items-center justify-center">Ver Ticket</a>
+                <div>
+                    <label class="block text-sm font-black text-[#1E55AA] mb-1">Fin de Plan</label>
+                    <input type="date" x-model="clienteForm.fin" class="w-full rounded-xl border-2 border-slate-100 bg-white py-2 px-3 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
                 </div>
             </div>
+
+            <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-100">
+                <div class="text-[#1E55AA]/60 font-bold">Total a cobrar:</div>
+                <div class="text-3xl font-black text-emerald-500" x-text="formatMoney(total)"></div>
+            </div>
+        </div>
+
+        <div class="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+            <button @click="cancelarCheckout()" class="flex-1 py-3.5 rounded-xl font-black text-[#1E55AA]/60 bg-white border-2 border-slate-200 hover:bg-slate-100 transition-all">
+                Cancelar
+            </button>
+            <button @click="confirmarCheckout()" class="flex-1 py-3.5 rounded-xl font-black text-white bg-[#1E55AA] shadow-lg shadow-[#1E55AA]/20 hover:bg-[#153e7d] hover:-translate-y-0.5 transition-all">
+                Confirmar Pago
+            </button>
         </div>
     </div>
+</div>
+
+{{-- Modal Éxito --}}
+<div x-cloak x-show="showConfirmacion" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
+    <div class="bg-white rounded-3xl shadow-2xl border-2 border-slate-100 w-full max-w-sm overflow-hidden text-center p-8 animate-fade-in" @click.stop>
+        <div class="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <h3 class="text-2xl font-black text-[#1E55AA] mb-2">¡Venta Exitosa!</h3>
+        <p class="text-slate-500 font-bold mb-6">El pago se registró correctamente en la caja.</p>
+        <button @click="cerrarConfirmacion()" class="w-full py-3.5 rounded-xl font-black text-[#1E55AA] bg-[#FFE63C] hover:bg-[#f5dd38] transition-all">
+            Nueva Venta
+        </button>
+    </div>
+</div>

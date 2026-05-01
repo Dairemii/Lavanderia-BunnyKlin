@@ -13,17 +13,17 @@ class MenuHelper
                 'items' => [
                     [
                         'name' => 'Punto de Venta',
-                        'icon' => 'ecommerce', // Ícono de tienda/carrito
+                        'icon' => 'ecommerce',
                         'path' => '/',
                     ],
                     [
                         'name' => 'Historial de Ventas',
-                        'icon' => 'tables', // Ícono de tabla para los registros
+                        'icon' => 'tables',
                         'path' => '/historial',
                     ],
                     [
                         'name' => 'Máquinas IoT',
-                        'icon' => 'dashboard', // Ícono general
+                        'icon' => 'dashboard',
                         'path' => '/maquinas',
                     ],
                 ],
@@ -33,14 +33,9 @@ class MenuHelper
                 'title' => 'CATÁLOGOS',
                 'items' => [
                     [
-                        'name' => 'Servicios de Lavado',
-                        'icon' => 'forms', // Ícono de lista/formulario
-                        'path' => '/servicios',
-                    ],
-                    [
-                        'name' => 'Productos Extra',
+                        'name' => 'Servicios y Productos',
                         'icon' => 'ui-elements', 
-                        'path' => '/productos',
+                        'path' => '/catalogo',
                     ],
                 ],
             ],
@@ -49,18 +44,23 @@ class MenuHelper
                 'title' => 'OPERACIÓN',
                 'items' => [
                     [
-                        'name' => 'Inventario (Insumos)',
-                        'icon' => 'task', // Ícono de tareas/check
-                        'path' => '/insumos',
+                        'name' => 'Pedidos y Encargos',
+                        'icon' => 'forms',
+                        'path' => '/pedidos',
                     ],
                     [
-                        'name' => 'Clientes / Suscripciones',
-                        'icon' => 'user-profile', // Ícono de usuario
+                        'name' => 'Clientes y Suscripciones',
+                        'icon' => 'user-profile',
                         'path' => '/clientes',
                     ],
                     [
+                        'name' => 'Inventario (Insumos)',
+                        'icon' => 'task',
+                        'path' => '/insumos',
+                    ],
+                    [
                         'name' => 'Corte de Caja',
-                        'icon' => 'charts', // Ícono de estadísticas/finanzas
+                        'icon' => 'charts',
                         'path' => '/caja',
                     ],
                 ],
