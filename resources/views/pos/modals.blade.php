@@ -18,22 +18,10 @@
                         <input type="number" x-model="itemModal.price" required class="w-full rounded-xl border-2 border-slate-100 bg-white py-3 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
                     </div>
 
-                    {{-- Campo: Descripción (Solo Servicios y Suscripciones) --}}
-                    <div x-show="itemModal.category === 'services' || itemModal.category === 'subscriptions'" x-collapse>
+                    {{-- Campo: Descripción (Solo Suscripciones) --}}
+                    <div x-show="itemModal.category === 'subscriptions'" x-collapse>
                         <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Descripción</label>
                         <textarea x-model="itemModal.description" rows="2" placeholder="Detalles adicionales..." class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors"></textarea>
-                    </div>
-
-                    {{-- Campos: Stock y Unidad (Solo Insumos) --}}
-                    <div x-show="itemModal.category === 'supplies'" class="grid grid-cols-2 gap-4" x-collapse>
-                        <div>
-                            <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Stock</label>
-                            <input type="number" x-model="itemModal.stock" placeholder="0" class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Unidad</label>
-                            <input type="text" x-model="itemModal.unit" placeholder="Ej. Lts, Pzas" class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors">
-                        </div>
                     </div>
 
                     {{-- Campo: Duración (Solo Suscripciones) --}}
@@ -56,7 +44,6 @@
                         <button @click="closeModal()" class="flex-1 py-3 rounded-xl font-black text-[#1E55AA]/60 bg-slate-100 hover:bg-slate-200 transition-all">Cancelar</button>
                         <button @click="deleteItem()" class="flex-1 py-3 rounded-xl font-black text-white bg-rose-500 shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all">Eliminar</button>
                     </div>
-
                 </div>
             </template>
         </div>
@@ -69,11 +56,12 @@
 
         <div class="p-6 border-b border-slate-100 bg-[#F4F8FC]">
             <h3 class="text-2xl font-black text-[#1E55AA]">Completar Venta</h3>
-            <p class="text-[#1E55AA]/60 font-bold mt-1">Registra al cliente y su vigencia (Opcional)</p>
+            <p x-show="cart.some(item => item.category === 'subscriptions')" class="text-[#1E55AA]/60 font-bold mt-1">Registra al cliente y su vigencia (Opcional)</p>
         </div>
 
         <div class="p-6 space-y-4">
-            <div class="grid grid-cols-2 gap-4">
+            
+            <div x-show="cart.some(item => item.category === 'subscriptions')" x-collapse class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-black text-[#1E55AA] mb-1">Nombre del Cliente</label>
                     <input type="text" x-model="clienteForm.nombre" placeholder="Público en General" class="w-full rounded-xl border-2 border-slate-100 bg-white py-2.5 px-3 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
@@ -84,7 +72,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 bg-[#F4F8FC] p-4 rounded-xl border border-[#1E55AA]/10 mt-2">
+            <div x-show="cart.some(item => item.category === 'subscriptions')" x-collapse class="grid grid-cols-2 gap-4 bg-[#F4F8FC] p-4 rounded-xl border border-[#1E55AA]/10 mt-2">
                 <div>
                     <label class="block text-sm font-black text-[#1E55AA] mb-1">Inicio de Plan</label>
                     <input type="date" x-model="clienteForm.inicio" class="w-full rounded-xl border-2 border-slate-100 bg-white py-2 px-3 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
@@ -125,4 +113,3 @@
         </button>
     </div>
 </div>
-
