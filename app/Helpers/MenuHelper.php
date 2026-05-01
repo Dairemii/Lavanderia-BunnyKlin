@@ -63,6 +63,11 @@ class MenuHelper
                         'icon' => 'charts',
                         'path' => '/caja',
                     ],
+                    [
+                        'name' => 'Calendario',
+                        'icon' => 'ui-elements',
+                        'path' => '/newcalendar',
+                    ],
                 ],
             ],
         ];
