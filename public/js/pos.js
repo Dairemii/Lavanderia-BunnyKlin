@@ -1,4 +1,3 @@
-
 function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
     const adaptarCatalogo = (data, category) => {
         console.log({ data });
@@ -32,7 +31,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
             duration_months: 1,
         },
 
-        clienteForm: { nombre: '', telefono: '', inicio: '', fin: '' },
+        clienteForm: { nombre: "", telefono: "", inicio: "", fin: "" },
 
         services: adaptarCatalogo(servicesDb, "services"),
         supplies: adaptarCatalogo(suppliesDb, "supplies"),
@@ -44,6 +43,8 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
         },
 
         handleItemClick(item, category) {
+            console.log({ item });
+            console.log({ category });
             if (this.activeMode === "edit") this.openEditModal(item, category);
             else if (this.activeMode === "delete")
                 this.openDeleteModal(item, category);
@@ -264,19 +265,19 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
                 currency: "MXN",
             }).format(amount);
         },
-        checkout() { 
-            if(this.cart.length) {
+        checkout() {
+            if (this.cart.length) {
                 const today = new Date();
-                const nextMonth = new Date(); 
+                const nextMonth = new Date();
                 nextMonth.setDate(today.getDate() + 30); // Por defecto suma 30 días
-                
-                this.clienteForm = { 
-                    nombre: '', 
-                    telefono: '', 
-                    inicio: today.toISOString().split('T')[0], 
-                    fin: nextMonth.toISOString().split('T')[0] 
+
+                this.clienteForm = {
+                    nombre: "",
+                    telefono: "",
+                    inicio: today.toISOString().split("T")[0],
+                    fin: nextMonth.toISOString().split("T")[0],
                 };
-                this.showPreConfirmacion = true; 
+                this.showPreConfirmacion = true;
             }
         },
         cancelarCheckout() {
@@ -284,39 +285,65 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
         },
 
         confirmarCheckout() {
-            let historial = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+            let historial =
+                JSON.parse(localStorage.getItem("historial_ventas")) || [];
             let numeroTicket = historial.length + 1;
-            let folioSecuencial = 'BK-' + numeroTicket.toString().padStart(4, '0');
-            
-            const nuevaVenta = { 
-                id: Date.now(), folio: folioSecuencial,
-                fecha: new Date().toLocaleString("es-MX", { timeZone: "America/Mexico_City", day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
-                total: this.total, metodo: 'Efectivo',
+            let folioSecuencial =
+                "BK-" + numeroTicket.toString().padStart(4, "0");
+
+            const nuevaVenta = {
+                id: Date.now(),
+                folio: folioSecuencial,
+                fecha: new Date().toLocaleString("es-MX", {
+                    timeZone: "America/Mexico_City",
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                }),
+                total: this.total,
+                metodo: "Efectivo",
                 detalles: JSON.parse(JSON.stringify(this.cart)),
-                cliente: this.clienteForm.nombre || 'Público en General'
+                cliente: this.clienteForm.nombre || "Público en General",
             };
 
             historial.unshift(nuevaVenta);
-            localStorage.setItem('historial_ventas', JSON.stringify(historial));
+            localStorage.setItem("historial_ventas", JSON.stringify(historial));
 
             // MAGIA CORREGIDA: ENVIAR EL CLIENTE AL OTRO PANEL SI SE ESCRIBIÓ SU NOMBRE
-            if (this.clienteForm.nombre.trim() !== '') {
-                let subscripcionComprada = this.cart.find(item => item.category === 'subscriptions');
-                let planName = subscripcionComprada ? subscripcionComprada.name : 'Ninguna';
-                let prendas = this.cart.filter(i => i.category === 'services').map(i => i.quantity + 'x ' + i.name).join(', ');
+            if (this.clienteForm.nombre.trim() !== "") {
+                let subscripcionComprada = this.cart.find(
+                    (item) => item.category === "subscriptions",
+                );
+                let planName = subscripcionComprada
+                    ? subscripcionComprada.name
+                    : "Ninguna";
+                let prendas = this.cart
+                    .filter((i) => i.category === "services")
+                    .map((i) => i.quantity + "x " + i.name)
+                    .join(", ");
 
                 // AHORA SÍ APUNTA A LA BASE DE DATOS CORRECTA (v2)
-                let clientes = JSON.parse(localStorage.getItem('lavanderia_clientes_final_v2')) || [];
+                let clientes =
+                    JSON.parse(
+                        localStorage.getItem("lavanderia_clientes_final_v2"),
+                    ) || [];
                 clientes.unshift({
                     id: Date.now(),
                     name: this.clienteForm.nombre,
                     phone: this.clienteForm.telefono,
-                    items: prendas || 'Solo pago de plan',
-                    status: 'Pendiente', // Corregido: Ya dice Pendiente y no Recibido
+                    items: prendas || "Solo pago de plan",
+                    status: "Pendiente", // Corregido: Ya dice Pendiente y no Recibido
                     subscription: planName,
-                    subscriptionEndDate: planName !== 'Ninguna' ? this.clienteForm.fin : '' // Si no compró plan, no hay fecha
+                    subscriptionEndDate:
+                        planName !== "Ninguna" ? this.clienteForm.fin : "", // Si no compró plan, no hay fecha
                 });
-                localStorage.setItem('lavanderia_clientes_final_v2', JSON.stringify(clientes));
+                localStorage.setItem(
+                    "lavanderia_clientes_final_v2",
+                    JSON.stringify(clientes),
+                );
             }
 
             this.ultimaVenta = nuevaVenta;
