@@ -4,7 +4,7 @@
         <div class="p-6 border-b border-slate-100 bg-[#F4F8FC]">
             <h3 class="text-2xl font-black text-[#1E55AA]" x-text="itemModal.mode === 'add' ? 'Nuevo Elemento' : (itemModal.mode === 'edit' ? 'Editar Elemento' : 'Eliminar Elemento')"></h3>
         </div>
-        
+
         <div class="p-6 space-y-4">
             <template x-if="itemModal.mode !== 'delete'">
                 <form @submit.prevent="saveItem" class="space-y-4">
@@ -16,20 +16,6 @@
                     <div>
                         <label class="block text-sm font-black text-[#1E55AA] mb-1">Precio ($)</label>
                         <input type="number" x-model="itemModal.price" required class="w-full rounded-xl border-2 border-slate-100 bg-white py-3 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
-                    </div>
-                    <div class="flex gap-3 pt-4">
-                        <button type="button" @click="closeModal()" class="flex-1 py-3 rounded-xl font-black text-[#1E55AA]/60 bg-slate-100 hover:bg-slate-200 transition-all">Cancelar</button>
-                        <button type="submit" class="flex-1 py-3 rounded-xl font-black text-white bg-emerald-500 shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all" x-text="itemModal.mode === 'add' ? 'Agregar' : 'Guardar'"></button>
-                    </div>
-                </form>
-            </template>
-
-            <template x-if="itemModal.mode === 'delete'">
-                <div class="text-center">
-                    <p class="text-lg font-bold text-slate-600 mb-6">¿Seguro que deseas eliminar <span class="text-[#1E55AA]" x-text="itemModal.name"></span>?</p>
-                    <div class="flex gap-3">
-                        <button @click="closeModal()" class="flex-1 py-3 rounded-xl font-black text-[#1E55AA]/60 bg-slate-100 hover:bg-slate-200 transition-all">Cancelar</button>
-                        <button @click="deleteItem()" class="flex-1 py-3 rounded-xl font-black text-white bg-rose-500 shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all">Eliminar</button>
                     </div>
 
                     {{-- Campo: Descripción (Solo Servicios y Suscripciones) --}}
@@ -55,6 +41,22 @@
                         <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Duración (Meses)</label>
                         <input type="number" x-model="itemModal.duration_months" placeholder="1" class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors">
                     </div>
+
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" @click="closeModal()" class="flex-1 py-3 rounded-xl font-black text-[#1E55AA]/60 bg-slate-100 hover:bg-slate-200 transition-all">Cancelar</button>
+                        <button type="submit" class="flex-1 py-3 rounded-xl font-black text-white bg-emerald-500 shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all" x-text="itemModal.mode === 'add' ? 'Agregar' : 'Guardar'"></button>
+                    </div>
+                </form>
+            </template>
+
+            <template x-if="itemModal.mode === 'delete'">
+                <div class="text-center">
+                    <p class="text-lg font-bold text-slate-600 mb-6">¿Seguro que deseas eliminar <span class="text-[#1E55AA]" x-text="itemModal.name"></span>?</p>
+                    <div class="flex gap-3">
+                        <button @click="closeModal()" class="flex-1 py-3 rounded-xl font-black text-[#1E55AA]/60 bg-slate-100 hover:bg-slate-200 transition-all">Cancelar</button>
+                        <button @click="deleteItem()" class="flex-1 py-3 rounded-xl font-black text-white bg-rose-500 shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all">Eliminar</button>
+                    </div>
+
                 </div>
             </template>
         </div>
@@ -64,12 +66,12 @@
 {{-- Modal Pre-Confirmación (Checkout con Fechas) --}}
 <div x-cloak x-show="showPreConfirmacion" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
     <div class="bg-white rounded-3xl shadow-2xl border-2 border-slate-100 w-full max-w-lg overflow-hidden animate-fade-in" @click.stop>
-        
+
         <div class="p-6 border-b border-slate-100 bg-[#F4F8FC]">
             <h3 class="text-2xl font-black text-[#1E55AA]">Completar Venta</h3>
             <p class="text-[#1E55AA]/60 font-bold mt-1">Registra al cliente y su vigencia (Opcional)</p>
         </div>
-        
+
         <div class="p-6 space-y-4">
             <div class="grid grid-cols-2 gap-4">
                 <div>
