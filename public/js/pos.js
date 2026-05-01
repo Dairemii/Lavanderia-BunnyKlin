@@ -1,85 +1,269 @@
-function posSystem(){
+
+function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
+    const adaptarCatalogo = (data, category) => {
+        console.log({ data });
+        return data.map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: parseFloat(item.price),
+            category: category,
+            description: item.description || null,
+            stock: item.stock || null,
+            unit: item.unit || null,
+            duration_months: item.duration_months || null,
+        }));
+    };
+
     return {
-        activeMode: 'sale', showPreConfirmacion: false, showConfirmacion: false, ultimaVenta: null,
-        itemModal: { open: false, mode: 'add', category: '', id: null, name: '', price: '' },
-        services: [ {id:1, name:'Lavado Normal', price:35}, {id:2, name:'Express Hot', price:55}, {id:3, name:'Delicado', price:45}, {id:4, name:'Secado 30min', price:25} ],
-        products: [ {id:6, name:'Detergente 1L', price:45}, {id:7, name:'Suavizante', price:35}, {id:8, name:'Bolsa Eco', price:12} ],
-        subscriptions: [], // Se carga dinámicamente
-        cart: [],
-        
-        // Datos para capturar en el momento del cobro
+        activeMode: "sale",
+        showPreConfirmacion: false,
+        showConfirmacion: false,
+        lastSale: null,
+        itemModal: {
+            open: false,
+            mode: "add",
+            category: "",
+            id: null,
+            name: "",
+            price: "",
+            description: "",
+            stock: 0,
+            unit: "",
+            duration_months: 1,
+        },
+
         clienteForm: { nombre: '', telefono: '', inicio: '', fin: '' },
 
-        init() {
-            // Cargar suscripciones guardadas para mantener sincronizado
-            const planesGuardados = localStorage.getItem('lavanderia_suscripciones');
-            if (planesGuardados) {
-                this.subscriptions = JSON.parse(planesGuardados);
-            } else {
-                this.subscriptions = [ {id:9, name:'Suscripción Mensual', price:399}, {id:10, name:'Plan VIP Semestral', price:1999} ];
-                this.guardarCatalogos();
-            }
+        services: adaptarCatalogo(servicesDb, "services"),
+        supplies: adaptarCatalogo(suppliesDb, "supplies"),
+        subscriptions: adaptarCatalogo(subscriptionsDb, "subscriptions"),
+        cart: [],
+
+        toggleMode(mode) {
+            this.activeMode = this.activeMode === mode ? "sale" : mode;
         },
 
-        guardarCatalogos() {
-            localStorage.setItem('lavanderia_suscripciones', JSON.stringify(this.subscriptions));
-        },
-
-        toggleMode(mode) { this.activeMode = this.activeMode === mode ? 'sale' : mode; },
-        
         handleItemClick(item, category) {
-            if (this.activeMode === 'edit') this.openEditModal(item, category);
-            else if (this.activeMode === 'delete') this.openDeleteModal(item, category);
-            else this.addToCart(item, category); // Ahora enviamos la categoría al carrito
+            if (this.activeMode === "edit") this.openEditModal(item, category);
+            else if (this.activeMode === "delete")
+                this.openDeleteModal(item, category);
+            else this.addToCart(item, category);
         },
 
-        openAddModal(category) { this.itemModal = { open: true, mode: 'add', category: category, id: Date.now(), name: '', price: '' }; },
-        openEditModal(item, category) { this.itemModal = { open: true, mode: 'edit', category: category, id: item.id, name: item.name, price: item.price }; },
-        openDeleteModal(item, category) { this.itemModal = { open: true, mode: 'delete', category: category, id: item.id, name: item.name, price: item.price }; },
-        closeModal() { this.itemModal.open = false; },
+        openAddModal(category) {
+            this.itemModal = {
+                open: true,
+                mode: "add",
+                category: category,
+                id: null,
+                name: "",
+                price: "",
+                description: "",
+                stock: 0,
+                unit: "",
+                duration_months: 1,
+            };
+        },
+        openEditModal(item, category) {
+            console.log({ item });
+            this.itemModal = {
+                open: true,
+                mode: "edit",
+                category: category,
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                description: item.description || null,
+                stock: item.stock || null,
+                unit: item.unit || null,
+                duration_months: item.duration_months || null,
+            };
+        },
+        openDeleteModal(item, category) {
+            this.itemModal = {
+                open: true,
+                mode: "delete",
+                category: category,
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                description: item.description || null,
+                stock: item.stock || null,
+                unit: item.unit || null,
+                duration_months: item.duration_months || null,
+            };
+        },
+        closeModal() {
+            this.itemModal.open = false;
+        },
 
-        saveItem() {
-            if (!this.itemModal.name.trim() || this.itemModal.price === '') return;
-            let targetList = this.itemModal.category === 'services' ? this.services : (this.itemModal.category === 'products' ? this.products : this.subscriptions);
+        async saveItem() {
+            // Validar campos, no vacios
+            if (!this.itemModal.name.trim() || this.itemModal.price === "")
+                return;
+
+            // Formatear el precio
             let priceVal = parseFloat(this.itemModal.price) || 0;
 
-            if (this.itemModal.mode === 'add') {
-                targetList.push({ id: this.itemModal.id, name: this.itemModal.name, price: priceVal });
-            } else {
-                let idx = targetList.findIndex(i => i.id === this.itemModal.id);
-                if (idx !== -1) { targetList[idx].name = this.itemModal.name; targetList[idx].price = priceVal; }
+            // 1. Armamos el "paquete" con toda la info del modal para Laravel
+            const payload = {
+                id: this.itemModal.id,
+                category: this.itemModal.category, // 'services', 'supplies', 'subscriptions'
+                name: this.itemModal.name,
+                price: priceVal,
+                // Campos dinámicos
+                description: this.itemModal.description,
+                stock: this.itemModal.stock,
+                unit: this.itemModal.unit,
+                duration_months: this.itemModal.duration_months,
+            };
+
+            // Definimos qué lista de Alpine.js vamos a actualizar al terminar
+            let targetList =
+                this.itemModal.category === "services"
+                    ? this.services
+                    : this.itemModal.category === "supplies"
+                      ? this.supplies
+                      : this.subscriptions;
+
+            try {
+                if (this.itemModal.mode === "add") {
+                    // 2. Disparamos la petición a la nueva ruta limpia del controlador
+                    const response = await fetch("/catalogo/guardar", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            // Requerido por seguridad en Laravel
+                            "X-CSRF-TOKEN": document
+                                .querySelector('meta[name="csrf-token"]')
+                                .getAttribute("content"),
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    // Si algo falla a nivel de red o servidor (Error 500)
+                    if (!response.ok) {
+                        const errorCrudo = await response.text();
+                        console.error(
+                            "🚨 DETALLE DEL ERROR DE LARAVEL:",
+                            errorCrudo,
+                        );
+
+                        try {
+                            const errorJson = JSON.parse(errorCrudo);
+                            alert(
+                                "Error del servidor: " +
+                                    (errorJson.message || errorJson.error),
+                            );
+                        } catch (e) {
+                            alert(
+                                "Error crítico del servidor. Revisa la consola.",
+                            );
+                        }
+                        return;
+                    }
+
+                    // 3. Laravel nos responde con el elemento creado (Y SU NUEVO ID AUTOGENERADO)
+                    const data = await response.json();
+
+                    // 4. Actualizamos el arreglo visual, usando el ID REAL de MySQL
+                    targetList.push({
+                        id: data.item.id,
+                        name: data.item.name,
+                        price: parseFloat(data.item.price),
+                        category: this.itemModal.category,
+                    });
+                } else {
+                    const response = await fetch("/catalogo/actualizar", {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            "X-CSRF-TOKEN": document
+                                .querySelector('meta[name="csrf-token"]')
+                                .getAttribute("content"),
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (!response.ok) throw new Error("Error al actualizar");
+
+                    const data = await response.json();
+
+                    // Encontrar el elemento en la lista visual y actualizarlo
+                    let idx = targetList.findIndex(
+                        (i) => i.id === this.itemModal.id,
+                    );
+                    if (idx !== -1) {
+                        // Reemplazamos los datos visuales con los que nos devolvió Laravel
+                        targetList[idx].name = data.item.name;
+                        targetList[idx].price = parseFloat(data.item.price);
+                        targetList[idx].description =
+                            data.item.description || null;
+                        targetList[idx].stock = data.item.stock || null;
+                        targetList[idx].unit = data.item.unit || null;
+                        targetList[idx].duration_months =
+                            data.item.duration_months || null;
+                    }
+                }
+
+                this.closeModal();
+            } catch (error) {
+                console.error(error);
+                alert("Hubo un problema al intentar guardar el elemento.");
             }
-            this.guardarCatalogos(); // Guardamos el cambio
-            this.closeModal();
         },
 
         deleteItem() {
-            let targetList = this.itemModal.category === 'services' ? this.services : (this.itemModal.category === 'products' ? this.products : this.subscriptions);
-            let idx = targetList.findIndex(i => i.id === this.itemModal.id);
+            let targetList =
+                this.itemModal.category === "services"
+                    ? this.services
+                    : this.itemModal.category === "supplies"
+                      ? this.supplies
+                      : this.subscriptions;
+            let idx = targetList.findIndex((i) => i.id === this.itemModal.id);
             if (idx !== -1) {
                 targetList.splice(idx, 1);
-                this.cart = this.cart.filter(c => c.id !== this.itemModal.id);
+                this.cart = this.cart.filter((c) => c.id !== this.itemModal.id);
             }
             this.guardarCatalogos(); // Guardamos el cambio
             this.closeModal();
         },
 
         addToCart(item, category) {
-            let found = this.cart.find(i => i.id === item.id);
+            let found = this.cart.find(
+                (i) => i.id === item.id && i.category === category,
+            );
             if (found) found.quantity++;
-            else this.cart.push({...item, quantity: 1, category: category}); // Guardamos qué tipo de producto es
+            else this.cart.push({ ...item, category: category, quantity: 1 });
         },
 
         updateQty(index, amount) {
-            this.cart[index].quantity = (parseInt(this.cart[index].quantity) || 0) + amount;
+            this.cart[index].quantity =
+                (parseInt(this.cart[index].quantity) || 0) + amount;
             if (this.cart[index].quantity <= 0) this.removeItem(index);
         },
-        removeItem(index) { this.cart.splice(index, 1); },
-        clearCart() { this.cart = []; },
-        get total() { return this.cart.reduce((sum, item) => sum + (item.price * (parseFloat(item.quantity) || 0)), 0); },
-        formatMoney(amount) { return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount); },
-        
-        // Al darle a cobrar, preparamos las fechas
+
+        removeItem(index) {
+            this.cart.splice(index, 1);
+        },
+        clearCart() {
+            this.cart = [];
+        },
+        get total() {
+            return this.cart.reduce(
+                (sum, item) =>
+                    sum + item.price * (parseFloat(item.quantity) || 0),
+                0,
+            );
+        },
+        formatMoney(amount) {
+            return new Intl.NumberFormat("es-MX", {
+                style: "currency",
+                currency: "MXN",
+            }).format(amount);
+        },
         checkout() { 
             if(this.cart.length) {
                 const today = new Date();
@@ -95,7 +279,9 @@ function posSystem(){
                 this.showPreConfirmacion = true; 
             }
         },
-        cancelarCheckout() { this.showPreConfirmacion = false; },
+        cancelarCheckout() {
+            this.showPreConfirmacion = false;
+        },
 
         confirmarCheckout() {
             let historial = JSON.parse(localStorage.getItem('historial_ventas')) || [];
@@ -138,6 +324,54 @@ function posSystem(){
             this.showConfirmacion = true;
             this.clearCart();
         },
-        cerrarConfirmacion() { this.showConfirmacion = false; }
-    }
+
+        // async confirmarCheckout() {
+        //     try {
+        //         const response = await fetch("/ventas", {
+        //             method: "POST",
+        //             headers: {
+        //                 "Content-Type": "application/json",
+        //                 Accept: "application/json",
+        //                 "X-CSRF-TOKEN": document
+        //                     .querySelector('meta[name="csrf-token"]')
+        //                     .getAttribute("content"),
+        //             },
+        //             body: JSON.stringify({
+        //                 total: this.total,
+        //                 metodo_pago: "Efectivo",
+        //                 detalles: this.cart,
+        //             }),
+        //         });
+
+        //         if (!response.ok)
+        //             throw new Error(
+        //                 "Error al procesar la venta en el servidor",
+        //             );
+
+        //         const data = await response.json();
+
+        //         this.lastSale = {
+        //             folio: data.venta.folio,
+        //             fecha: new Date(data.venta.created_at).toLocaleString(
+        //                 "es-MX",
+        //             ),
+        //             total: data.venta.total,
+        //             detalles: this.cart,
+        //         };
+
+        //         this.showPreConfirmacion = false;
+        //         this.showConfirmacion = true;
+        //         this.clearCart();
+        //     } catch (error) {
+        //         console.error(error);
+        //         alert(
+        //             "Hubo un problema al guardar la venta en la base de datos.",
+        //         );
+        //     }
+        // },
+
+        cerrarConfirmacion() {
+            this.showConfirmacion = false;
+        },
+    };
 }

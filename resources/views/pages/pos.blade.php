@@ -6,8 +6,8 @@
 @endsection
 
 @section('content')
-<div x-data="posSystem()" x-cloak class="font-nunito relative min-h-screen pb-12 bg-[#F4F8FC] text-[#1E55AA] selection:bg-[#FFE63C] selection:text-[#1E55AA]">
-    
+<div x-data='posSystem(@json($services), @json($supplies), @json($subscriptions))' x-cloak class="font-nunito relative min-h-screen pb-12 bg-[#F4F8FC] text-[#1E55AA] selection:bg-[#FFE63C] selection:text-[#1E55AA]">
+
     {{-- Fondo Decorativo --}}
     <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div class="absolute top-[-10%] left-[-5%] w-[40vw] h-[40vw] rounded-full bg-[#1E55AA]/5 blur-[100px] animate-float"></div>
@@ -21,7 +21,7 @@
     {{-- MAIN LAYOUT --}}
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 relative z-10">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
+
             {{-- IZQUIERDA: CATÁLOGO --}}
             <div class="lg:col-span-8 space-y-8">
                 @include('pos.catalog')

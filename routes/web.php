@@ -4,6 +4,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\BrickPagoController;
 use Illuminate\Support\Facades\Http;
+// Imports para ruta principal /
+use App\Models\Service;
+use App\Models\Supply;
+use App\Models\Subscription;
+// Import para Controlador del catalogo
+use App\Http\Controllers\CatalogoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,15 +22,29 @@ use Illuminate\Support\Facades\Http;
 // =========================================================
 
 Route::get('/', function () {
-    return view('pages.pos', ['title' => 'Punto de Venta']);
+    $services = App\Models\Service::where('is_active', true)->get();
+    $supplies = App\Models\Supply::where('is_active', true)->get();
+    $subscriptions = App\Models\Subscription::where('is_active', true)->get();
+
+    return view('pages.pos', [
+            'title'         => 'Punto de Venta',
+            'services'     => $services,
+            'supplies'       => $supplies,
+            'subscriptions' => $subscriptions
+        ]);
 })->name('pos');
+
+// Ruta para guardar cosas del catalogo
+Route::post('/catalogo/guardar', [CatalogoController::class, 'store'])->name('catalogo.store');
+// Ruta para editar cosas del catalogo
+Route::put('/catalogo/actualizar', [CatalogoController::class, 'update'])->name('catalogo.update');
 
 Route::get('/historial', function () {
     return view('pages.historial', ['title' => 'Historial de Ventas']);
 })->name('historial');
 
 Route::get('/maquinas', function () {
-    return view('pages.blank', ['title' => 'Máquinas IoT']); 
+    return view('pages.blank', ['title' => 'Máquinas IoT']);
 })->name('maquinas');
 
 
@@ -68,4 +88,20 @@ Route::get('/profile', function () { return view('pages.profile', ['title' => 'P
 Route::get('/signin', function () { return view('pages.auth.signin', ['title' => 'Sign In']); })->name('signin');
 Route::get('/signup', function () { return view('pages.auth.signup', ['title' => 'Sign Up']); })->name('signup');
 Route::post('/pagar', [PagoController::class, 'iniciarPago'])->name('pago.iniciar');
+
 Route::get('/pago/exito', [PagoController::class, 'pagoExitoso'])->name('pago.exito');
+Route::get('/pago/fallo', [PagoController::class, 'pagoFallido'])->name('pago.fallo');
+Route::get('/pago/pendiente', [PagoController::class, 'pagoPendiente'])->name('pago.pendiente');
+
+// Checkout Bricks
+Route::get('/pagar-con-tarjeta', [BrickPagoController::class, 'mostrarFormulario'])->name('brick.form');
+Route::post('/procesar-pago', [BrickPagoController::class, 'procesarPago'])->name('brick.procesar');
+
+// Consultar terminales físicas de Mercado Pago Point
+Route::get('/mis-terminales', function () {
+    $response = Http::withHeaders([
+        'Authorization' => 'Bearer TU_ACCESS_TOKEN_DE_PRODUCCION'
+    ])->get('https://api.mercadopago.com/point/integration-api/devices');
+
+    return $response->json();
+});
