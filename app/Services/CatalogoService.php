@@ -76,4 +76,13 @@ class CatalogoService
         };
     }
 
+    public function eliminarElemento(string $category, int $id)
+    {
+        return match ($category) {
+            'services'      => \App\Models\Service::query()->findOrFail($id)->delete(),
+            'supplies'      => \App\Models\Supply::query()->findOrFail($id)->delete(),
+            'subscriptions' => \App\Models\Subscription::query()->findOrFail($id)->delete(),
+            default         => throw new \Exception('Categoría no válida'),
+        };
+    }
 }

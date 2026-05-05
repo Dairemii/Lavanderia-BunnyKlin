@@ -173,7 +173,23 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                         targetList[idx].description = data.item.description || null;
                         targetList[idx].stock = data.item.stock || null;
                         targetList[idx].unit = data.item.unit || null;
-                        targetList[idx].duration_months = data.item.duration_months || null;
+
+                        targetList[idx].duration_months =
+                            data.item.duration_months || null;
+
+                        // Actualizamos el item en el carrito
+                        let cartIdx = this.cart.findIndex(
+                            (c) =>
+                                c.id === this.itemModal.id &&
+                                c.category === this.itemModal.category,
+                        );
+                        if (cartIdx !== -1) {
+                            // Actualizamos sus datos, pero respetamos su .quantity actual
+                            this.cart[cartIdx].name = data.item.name;
+                            this.cart[cartIdx].price = parseFloat(
+                                data.item.price,
+                            );
+                        }
                     }
                 }
 
@@ -184,24 +200,57 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             }
         },
 
-        deleteItem() {
-            let targetList =
-                this.itemModal.category === "services" ? this.services
-                : this.itemModal.category === "supplies" ? this.supplies
-                : this.itemModal.category === "subscriptions" ? this.subscriptions
-                : this.extras;
+        async deleteItem() {
+            try {
+                // 1. Armamos el paquete solo con lo necesario para borrar
+                const payload = {
+                    id: this.itemModal.id,
+                    category: this.itemModal.category,
+                };
 
-            let idx = targetList.findIndex((i) => i.id === this.itemModal.id);
-            if (idx !== -1) {
-                targetList.splice(idx, 1);
-                this.cart = this.cart.filter(
-                    (c) => !(c.id === this.itemModal.id && c.category === this.itemModal.category)
+                // 2. Disparamos la petición DELETE a Laravel
+                const response = await fetch("/catalogo/eliminar", {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                        "X-CSRF-TOKEN": document
+                            .querySelector('meta[name="csrf-token"]')
+                            .getAttribute("content"),
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok)
+                    throw new Error("Error al eliminar en el servidor");
+
+                // 3. Si Laravel lo borró con éxito, actualizamos la vista
+                let targetList =
+                    this.itemModal.category === "services"
+                        ? this.services
+                        : this.itemModal.category === "supplies"
+                          ? this.supplies
+                          : this.subscriptions;
+
+                let idx = targetList.findIndex(
+                    (i) => i.id === this.itemModal.id,
                 );
+
+                if (idx !== -1) {
+                    targetList.splice(idx, 1); // Lo quitamos del catálogo
+
+                    // Sacamos del carrito si es que estaba agregado antes de borrarlo
+                    this.cart = this.cart.filter(
+                        (c) => c.id !== this.itemModal.id,
+                    );
+                }
+
+                // Cerramos el modal
+                this.closeModal();
+            } catch (error) {
+                console.error(error);
+                alert("Hubo un problema al intentar eliminar el elemento.");
             }
-            if (typeof this.guardarCatalogos === 'function') {
-                this.guardarCatalogos(); 
-            }
-            this.closeModal();
         },
 
         addToCart(item, category) {
