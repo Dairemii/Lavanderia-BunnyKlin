@@ -23,9 +23,9 @@ use App\Http\Controllers\CatalogoController;
 // =========================================================
 
 Route::get('/', function () {
-    $services = App\Models\Service::where('is_active', true)->get();
-    $supplies = App\Models\Supply::where('is_active', true)->get();
-    $subscriptions = App\Models\Subscription::where('is_active', true)->get();
+    $services = App\Models\Service::query()->where('is_active', true)->get();
+    $supplies = App\Models\Supply::query()->where('is_active', true)->get();
+    $subscriptions = App\Models\Subscription::query()->where('is_active', true)->get();
 
     return view('pages.pos', [
             'title'         => 'Punto de Venta',
@@ -39,6 +39,8 @@ Route::get('/', function () {
 Route::post('/catalogo/guardar', [CatalogoController::class, 'store'])->name('catalogo.store');
 // Ruta para editar cosas del catalogo
 Route::put('/catalogo/actualizar', [CatalogoController::class, 'update'])->name('catalogo.update');
+// Ruta para eliminar registros del catalogo
+Route::delete('/catalogo/eliminar', [CatalogoController::class, 'destroy'])->name('catalogo.destroy');
 
 Route::get('/historial', function () {
     return view('pages.historial', ['title' => 'Historial de Ventas']);
