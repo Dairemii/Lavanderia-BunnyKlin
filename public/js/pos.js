@@ -44,7 +44,8 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
 
         handleItemClick(item, category) {
             if (this.activeMode === "edit") this.openEditModal(item, category);
-            else if (this.activeMode === "delete") this.openDeleteModal(item, category);
+            else if (this.activeMode === "delete")
+                this.openDeleteModal(item, category);
             else this.addToCart(item, category);
         },
 
@@ -62,7 +63,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                 duration_months: 1,
             };
         },
-        
+
         openEditModal(item, category) {
             this.itemModal = {
                 open: true,
@@ -77,7 +78,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                 duration_months: item.duration_months || null,
             };
         },
-        
+
         openDeleteModal(item, category) {
             this.itemModal = {
                 open: true,
@@ -92,13 +93,14 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                 duration_months: item.duration_months || null,
             };
         },
-        
+
         closeModal() {
             this.itemModal.open = false;
         },
 
         async saveItem() {
-            if (!this.itemModal.name.trim() || this.itemModal.price === "") return;
+            if (!this.itemModal.name.trim() || this.itemModal.price === "")
+                return;
 
             let priceVal = parseFloat(this.itemModal.price) || 0;
 
@@ -114,10 +116,13 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             };
 
             let targetList =
-                this.itemModal.category === "services" ? this.services
-                : this.itemModal.category === "supplies" ? this.supplies
-                : this.itemModal.category === "subscriptions" ? this.subscriptions
-                : this.extras;
+                this.itemModal.category === "services"
+                    ? this.services
+                    : this.itemModal.category === "supplies"
+                      ? this.supplies
+                      : this.itemModal.category === "subscriptions"
+                        ? this.subscriptions
+                        : this.extras;
 
             try {
                 if (this.itemModal.mode === "add") {
@@ -126,19 +131,29 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
-                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+                            "X-CSRF-TOKEN": document
+                                .querySelector('meta[name="csrf-token"]')
+                                .getAttribute("content"),
                         },
                         body: JSON.stringify(payload),
                     });
 
                     if (!response.ok) {
                         const errorCrudo = await response.text();
-                        console.error("🚨 DETALLE DEL ERROR DE LARAVEL:", errorCrudo);
+                        console.error(
+                            "🚨 DETALLE DEL ERROR DE LARAVEL:",
+                            errorCrudo,
+                        );
                         try {
                             const errorJson = JSON.parse(errorCrudo);
-                            alert("Error del servidor: " + (errorJson.message || errorJson.error));
+                            alert(
+                                "Error del servidor: " +
+                                    (errorJson.message || errorJson.error),
+                            );
                         } catch (e) {
-                            alert("Error crítico del servidor. Revisa la consola.");
+                            alert(
+                                "Error crítico del servidor. Revisa la consola.",
+                            );
                         }
                         return;
                     }
@@ -157,7 +172,9 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
-                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+                            "X-CSRF-TOKEN": document
+                                .querySelector('meta[name="csrf-token"]')
+                                .getAttribute("content"),
                         },
                         body: JSON.stringify(payload),
                     });
@@ -166,11 +183,14 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
 
                     const data = await response.json();
 
-                    let idx = targetList.findIndex((i) => i.id === this.itemModal.id);
+                    let idx = targetList.findIndex(
+                        (i) => i.id === this.itemModal.id,
+                    );
                     if (idx !== -1) {
                         targetList[idx].name = data.item.name;
                         targetList[idx].price = parseFloat(data.item.price);
-                        targetList[idx].description = data.item.description || null;
+                        targetList[idx].description =
+                            data.item.description || null;
                         targetList[idx].stock = data.item.stock || null;
                         targetList[idx].unit = data.item.unit || null;
 
@@ -260,44 +280,49 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             if (found) {
                 found.quantity++;
             } else {
-                this.cart.push({ 
-                    ...item, 
-                    category: category, 
+                this.cart.push({
+                    ...item,
+                    category: category,
                     quantity: 1,
-                    cart_id: category + '-' + item.id 
+                    cart_id: category + "-" + item.id,
                 });
             }
         },
 
         updateQty(index, amount) {
-            this.cart[index].quantity = (parseInt(this.cart[index].quantity) || 0) + amount;
+            this.cart[index].quantity =
+                (parseInt(this.cart[index].quantity) || 0) + amount;
             if (this.cart[index].quantity <= 0) this.removeItem(index);
         },
 
         removeItem(index) {
             this.cart.splice(index, 1);
         },
-        
+
         clearCart() {
             this.cart = [];
         },
 
         get total() {
-            return this.cart.reduce((sum, item) => sum + item.price * (parseFloat(item.quantity) || 0), 0);
+            return this.cart.reduce(
+                (sum, item) =>
+                    sum + item.price * (parseFloat(item.quantity) || 0),
+                0,
+            );
         },
-        
+
         formatMoney(amount) {
             return new Intl.NumberFormat("es-MX", {
                 style: "currency",
                 currency: "MXN",
             }).format(amount);
         },
-        
+
         checkout() {
             if (this.cart.length) {
                 const today = new Date();
                 const nextMonth = new Date();
-                nextMonth.setDate(today.getDate() + 30); 
+                nextMonth.setDate(today.getDate() + 30);
 
                 this.clienteForm = {
                     nombre: "",
@@ -308,15 +333,17 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                 this.showPreConfirmacion = true;
             }
         },
-        
+
         cancelarCheckout() {
             this.showPreConfirmacion = false;
         },
 
         confirmarCheckout() {
-            let historial = JSON.parse(localStorage.getItem("historial_ventas")) || [];
+            let historial =
+                JSON.parse(localStorage.getItem("historial_ventas")) || [];
             let numeroTicket = historial.length + 1;
-            let folioSecuencial = "BK-" + numeroTicket.toString().padStart(4, "0");
+            let folioSecuencial =
+                "BK-" + numeroTicket.toString().padStart(4, "0");
 
             const nuevaVenta = {
                 id: Date.now(),
@@ -340,14 +367,21 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             localStorage.setItem("historial_ventas", JSON.stringify(historial));
 
             if (this.clienteForm.nombre.trim() !== "") {
-                let subscripcionComprada = this.cart.find((item) => item.category === "subscriptions");
-                let planName = subscripcionComprada ? subscripcionComprada.name : "Ninguna";
+                let subscripcionComprada = this.cart.find(
+                    (item) => item.category === "subscriptions",
+                );
+                let planName = subscripcionComprada
+                    ? subscripcionComprada.name
+                    : "Ninguna";
                 let prendas = this.cart
                     .filter((i) => i.category === "services")
                     .map((i) => i.quantity + "x " + i.name)
                     .join(", ");
 
-                let clientes = JSON.parse(localStorage.getItem("lavanderia_clientes_final_v2")) || [];
+                let clientes =
+                    JSON.parse(
+                        localStorage.getItem("lavanderia_clientes_final_v2"),
+                    ) || [];
                 clientes.unshift({
                     id: Date.now(),
                     name: this.clienteForm.nombre,
@@ -355,9 +389,13 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                     items: prendas || "Solo pago de plan",
                     status: "Pendiente",
                     subscription: planName,
-                    subscriptionEndDate: planName !== "Ninguna" ? this.clienteForm.fin : "",
+                    subscriptionEndDate:
+                        planName !== "Ninguna" ? this.clienteForm.fin : "",
                 });
-                localStorage.setItem("lavanderia_clientes_final_v2", JSON.stringify(clientes));
+                localStorage.setItem(
+                    "lavanderia_clientes_final_v2",
+                    JSON.stringify(clientes),
+                );
             }
 
             this.ultimaVenta = nuevaVenta;
