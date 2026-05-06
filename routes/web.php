@@ -11,6 +11,8 @@ use App\Models\Supply;
 use App\Models\Subscription;
 // Import para Controlador del catalogo
 use App\Http\Controllers\CatalogoController;
+// Import para Controlador del historial de ventas
+use App\Http\Controllers\SalesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +43,9 @@ Route::post('/catalogo/guardar', [CatalogoController::class, 'store'])->name('ca
 Route::put('/catalogo/actualizar', [CatalogoController::class, 'update'])->name('catalogo.update');
 // Ruta para eliminar registros del catalogo
 Route::delete('/catalogo/eliminar', [CatalogoController::class, 'destroy'])->name('catalogo.destroy');
+
+// Ruta para el historial de compras
+Route::post('/ventas/checkout', [SalesController::class, 'store'])->name('ventas.checkout');
 
 Route::get('/historial', function () {
     return view('pages.historial', ['title' => 'Historial de Ventas']);

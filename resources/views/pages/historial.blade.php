@@ -22,7 +22,7 @@
     </style>
 
     <div x-data="historialSystem()" class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10 font-nunito relative">
-        
+
         {{-- TICKET OCULTO PARA IMPRESIÓN --}}
         <div id="zona-impresion">
             <template x-if="ticketAImprimir">
@@ -123,7 +123,7 @@
 
         {{-- GRID PRINCIPAL --}}
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
+
             {{-- TABLA DE HISTORIAL --}}
             <div class="lg:col-span-8">
                 <div class="rounded-2xl border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-sm sm:px-7.5 xl:pb-1">
@@ -141,12 +141,12 @@
                             <tbody>
                                 <template x-if="ventasFiltradas.length === 0">
                                     <tr>
-                                        <td colspan="5" class="py-12 text-center text-slate-400 font-bold text-lg" 
+                                        <td colspan="5" class="py-12 text-center text-slate-400 font-bold text-lg"
                                             x-text="tipoFiltro === 'todas' ? 'Aún no hay ventas registradas.' : 'No hay ventas en esta fecha.'"></td>
                                     </tr>
                                 </template>
                                 <template x-for="venta in ventasFiltradas" :key="venta.id">
-                                    <tr class="border-b border-[#eee] transition-colors cursor-pointer" 
+                                    <tr class="border-b border-[#eee] transition-colors cursor-pointer"
                                         @click="verTicket(venta)"
                                         :class="ticketActivo && ticketActivo.id === venta.id ? 'bg-[#1E55AA]/5 border-l-4 border-l-[#1E55AA]' : 'hover:bg-slate-50 border-l-4 border-l-transparent'">
                                         <td class="py-4 px-4"><span class="text-[#1E55AA] font-black" x-text="venta.folio"></span></td>
@@ -156,7 +156,7 @@
                                                 <template x-for="item in getDetalles(venta)" :key="item.id">
                                                     <div class="text-[11px] font-bold text-slate-600 flex items-center gap-1">
                                                         <div class="w-1 h-1 rounded-full bg-[#FFE63C]"></div>
-                                                        <span x-text="item.name"></span> 
+                                                        <span x-text="item.name"></span>
                                                         <span class="text-[#1E55AA] bg-white border border-slate-200 px-1 rounded" x-text="'x' + item.quantity"></span>
                                                     </div>
                                                 </template>
@@ -179,7 +179,7 @@
             {{-- VISTA PREVIA DEL TICKET --}}
             <div class="lg:col-span-4 relative">
                 <div class="sticky top-8 bg-white border-2 border-slate-100 rounded-[2rem] shadow-sm flex flex-col overflow-hidden h-[calc(100vh-8rem)]">
-                    
+
                     <div class="p-4 bg-[#F4F8FC] border-b border-slate-100 flex items-center gap-3">
                         <div class="p-2 bg-[#1E55AA] text-white rounded-xl shadow-sm">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -258,7 +258,7 @@
             confirmModal: { open: false, title: '', message: '', onConfirm: null },
             ticketActivo: null,
             ticketAImprimir: null,
-            
+
             init() {
                 this.cargarDatos();
                 this.$watch('tipoFiltro', (value) => {
@@ -322,7 +322,7 @@
                     mes: `Se eliminarán los tickets del mes de ${this.valorFiltro}.`,
                     todas: 'Se vaciará por completo el historial de ventas.'
                 };
-                
+
                 this.abrirConfirmacion('¿Limpiar historial?', mensajes[this.tipoFiltro], () => {
                     const idsABorrar = this.ventasFiltradas.map(v => v.id);
                     this.ventas = this.ventas.filter(v => !idsABorrar.includes(v.id));
@@ -344,7 +344,7 @@
                 this.ventas.forEach(v => {
                     const fechaParte = v.fecha.split(',')[0].trim();
                     diasSet.add(fechaParte);
-                    
+
                     const partes = fechaParte.split('/');
                     if (partes.length === 3) {
                         const mesAnio = `${partes[1]}/${partes[2]}`;
@@ -370,7 +370,7 @@
                 this.ventasFiltradas = (filtros[this.tipoFiltro] || filtros.todas)();
                 this.totalFiltro = this.ventasFiltradas.reduce((suma, venta) => suma + parseFloat(venta.total), 0);
             },
-            
+
             formatMoney(amount) {
                 return '$' + Number(amount).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
