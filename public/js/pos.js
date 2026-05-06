@@ -338,70 +338,94 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             this.showPreConfirmacion = false;
         },
 
-        confirmarCheckout() {
-            let historial =
-                JSON.parse(localStorage.getItem("historial_ventas")) || [];
-            let numeroTicket = historial.length + 1;
-            let folioSecuencial =
-                "BK-" + numeroTicket.toString().padStart(4, "0");
+        async confirmarCheckout() {
+            try {
+                // Preparamos los datos para Laravel
+                const payload = {
+                    total: this.total,
+                    metodo_pago: "Efectivo",
+                    detalles: this.cart,
+                };
 
-            const nuevaVenta = {
-                id: Date.now(),
-                folio: folioSecuencial,
-                fecha: new Date().toLocaleString("es-MX", {
-                    timeZone: "America/Mexico_City",
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                }),
-                total: this.total,
-                metodo: "Efectivo",
-                detalles: JSON.parse(JSON.stringify(this.cart)),
-                cliente: this.clienteForm.nombre || "Público en General",
-            };
-
-            historial.unshift(nuevaVenta);
-            localStorage.setItem("historial_ventas", JSON.stringify(historial));
-
-            if (this.clienteForm.nombre.trim() !== "") {
-                let subscripcionComprada = this.cart.find(
-                    (item) => item.category === "subscriptions",
-                );
-                let planName = subscripcionComprada
-                    ? subscripcionComprada.name
-                    : "Ninguna";
-                let prendas = this.cart
-                    .filter((i) => i.category === "services")
-                    .map((i) => i.quantity + "x " + i.name)
-                    .join(", ");
-
-                let clientes =
-                    JSON.parse(
-                        localStorage.getItem("lavanderia_clientes_final_v2"),
-                    ) || [];
-                clientes.unshift({
-                    id: Date.now(),
-                    name: this.clienteForm.nombre,
-                    phone: this.clienteForm.telefono,
-                    items: prendas || "Solo pago de plan",
-                    status: "Pendiente",
-                    subscription: planName,
-                    subscriptionEndDate:
-                        planName !== "Ninguna" ? this.clienteForm.fin : "",
+                // Enviamos la petición al servidor
+                const response = await fetch("/ventas/checkout", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                        "X-CSRF-TOKEN": document
+                            .querySelector('meta[name="csrf-token"]')
+                            .getAttribute("content"),
+                    },
+                    body: JSON.stringify(payload),
                 });
-                localStorage.setItem(
-                    "lavanderia_clientes_final_v2",
-                    JSON.stringify(clientes),
-                );
-            }
 
-            this.ultimaVenta = nuevaVenta;
-            this.showPreConfirmacion = false;
-            this.showConfirmacion = true;
-            this.clearCart();
+                if (!response.ok) {
+                    const errorCrudo = await response.text();
+                    console.error("🚨 ERROR LARAVEL:", errorCrudo);
+                    throw new Error(
+                        "Error al guardar la venta en la base de datos",
+                    );
+                }
+
+                // Recibimos la Venta confirmada desde Laravel (con el Folio real generado)
+                const data = await response.json();
+
+                // Actualizamos la última venta para el ticket en pantalla
+                this.ultimaVenta = {
+                    folio: data.venta.reference, // Usamos la referencia que generó Laravel
+                    fecha: new Date().toLocaleString("es-MX", {
+                        timeZone: "America/Mexico_City",
+                    }),
+                    total: data.venta.total,
+                };
+
+                // --- LÓGICA DE CLIENTES (Se mantiene en LocalStorage por ahora) ---
+                if (this.clienteForm.nombre.trim() !== "") {
+                    let subscripcionComprada = this.cart.find(
+                        (item) => item.category === "subscriptions",
+                    );
+                    let planName = subscripcionComprada
+                        ? subscripcionComprada.name
+                        : "Ninguna";
+                    let prendas = this.cart
+                        .filter((i) => i.category === "services")
+                        .map((i) => i.quantity + "x " + i.name)
+                        .join(", ");
+
+                    let clientes =
+                        JSON.parse(
+                            localStorage.getItem(
+                                "lavanderia_clientes_final_v2",
+                            ),
+                        ) || [];
+                    clientes.unshift({
+                        id: Date.now(),
+                        name: this.clienteForm.nombre,
+                        phone: this.clienteForm.telefono,
+                        items: prendas || "Solo pago de plan",
+                        status: "Pendiente",
+                        subscription: planName,
+                        subscriptionEndDate:
+                            planName !== "Ninguna" ? this.clienteForm.fin : "",
+                    });
+                    localStorage.setItem(
+                        "lavanderia_clientes_final_v2",
+                        JSON.stringify(clientes),
+                    );
+                }
+                // ------------------------------------------------------------------
+
+                // Mostramos el ticket de éxito
+                this.showPreConfirmacion = false;
+                this.showConfirmacion = true;
+
+                // Limpiamos el carrito
+                this.clearCart();
+            } catch (error) {
+                console.error(error);
+                alert("Hubo un problema al procesar el cobro.");
+            }
         },
 
         cerrarConfirmacion() {
