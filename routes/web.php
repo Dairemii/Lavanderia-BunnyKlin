@@ -44,8 +44,14 @@ Route::put('/catalogo/actualizar', [CatalogoController::class, 'update'])->name(
 // Ruta para eliminar registros del catalogo
 Route::delete('/catalogo/eliminar', [CatalogoController::class, 'destroy'])->name('catalogo.destroy');
 
-// Ruta para el historial de compras
+// Ruta para registrar en el historial de compras
 Route::post('/ventas/checkout', [SalesController::class, 'store'])->name('ventas.checkout');
+// Ruta para obtener el historial de compras
+Route::get('/ventas/api-historial', [SalesController::class, 'apiHistorial']);
+// Ruta para borrar múltiples ventas a la vez
+Route::delete('/ventas/bulk', [App\Http\Controllers\SalesController::class, 'destroyBulk'])->name('ventas.bulkDestroy');
+// Ruta para borrar una sola venta
+Route::delete('/ventas/{id}', [App\Http\Controllers\SalesController::class, 'destroy'])->name('ventas.destroy');
 
 Route::get('/historial', function () {
     return view('pages.historial', ['title' => 'Historial de Ventas']);

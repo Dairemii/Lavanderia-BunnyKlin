@@ -45,4 +45,16 @@ class SalesService
         });
     }
 
+    public function eliminarVenta(int $id)
+    {
+        $venta = Sale::query()->findOrFail($id);
+        // Al eliminar el modelo, la BD se encarga de los sale_items en cascada
+        return $venta->delete();
+    }
+
+    public function eliminarVentasMasivas(array $ids)
+    {
+        return Sale::query()->whereIn('id', $ids)->delete();
+    }
+
 }
