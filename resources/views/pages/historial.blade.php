@@ -21,7 +21,7 @@
         }
     </style>
 
-    <div x-data="historialSystem()" class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10 font-nunito relative">
+    <div x-data="historialSystem" class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10 font-nunito relative">
 
         {{-- TICKET OCULTO PARA IMPRESIÓN --}}
         <div id="zona-impresion">
@@ -47,8 +47,8 @@
                             <template x-for="item in getDetalles(ticketAImprimir)" :key="item.id">
                                 <tr>
                                     <td style="padding: 4px 0; text-align: left; font-size: 10px; border-bottom: 1px dotted #ccc;">
-                                        <div style="font-weight: bold; text-transform: uppercase;" x-text="item.name"></div>
-                                        <div style="color: #333;" x-text="item.quantity + ' x $' + parseFloat(item.price).toFixed(2)"></div>
+                                        <div style="font-weight: bold; text-transform: uppercase;" x-text="item.name_snapshot"></div>
+                                        <div style="color: #333;" x-text="item.quantity + ' x $' + parseFloat(item.price_snapshot).toFixed(2)"></div>
                                     </td>
                                     <td style="padding: 4px 0; text-align: right; font-size: 11px; font-weight: bold; vertical-align: bottom; border-bottom: 1px dotted #ccc;" x-text="'$' + (item.price * item.quantity).toFixed(2)"></td>
                                 </tr>
@@ -156,7 +156,7 @@
                                                 <template x-for="item in getDetalles(venta)" :key="item.id">
                                                     <div class="text-[11px] font-bold text-slate-600 flex items-center gap-1">
                                                         <div class="w-1 h-1 rounded-full bg-[#FFE63C]"></div>
-                                                        <span x-text="item.name"></span>
+                                                        <span x-text="item.name_snapshot"></span>
                                                         <span class="text-[#1E55AA] bg-white border border-slate-200 px-1 rounded" x-text="'x' + item.quantity"></span>
                                                     </div>
                                                 </template>
@@ -215,10 +215,10 @@
                                     <template x-for="item in getDetalles(ticketActivo)" :key="item.id">
                                         <tr class="border-b border-dotted border-slate-200">
                                             <td class="py-2 text-left">
-                                                <div class="font-bold uppercase" x-text="item.name"></div>
-                                                <div class="text-slate-500 mt-0.5" x-text="item.quantity + ' x ' + formatMoney(item.price)"></div>
+                                                <div class="font-bold uppercase" x-text="item.name_snapshot"></div>
+                                                <div class="text-slate-500 mt-0.5" x-text="item.quantity + ' x ' + formatMoney(item.price_snapshot)"></div>
                                             </td>
-                                            <td class="py-2 text-right font-bold align-bottom" x-text="formatMoney(item.price * item.quantity)"></td>
+                                            <td class="py-2 text-right font-bold align-bottom" x-text="formatMoney(item.price_snapshot * item.quantity)"></td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -245,136 +245,6 @@
         </div>
     </div>
 
-    <script>
-    function historialSystem() {
-        return {
-            ventas: [],
-            ventasFiltradas: [],
-            tipoFiltro: 'todas',
-            valorFiltro: '',
-            mesesDisponibles: [],
-            diasDisponibles: [],
-            totalFiltro: 0,
-            confirmModal: { open: false, title: '', message: '', onConfirm: null },
-            ticketActivo: null,
-            ticketAImprimir: null,
+    <script src="{{ asset('js/historial.js') }}"></script>
 
-            init() {
-                this.cargarDatos();
-                this.$watch('tipoFiltro', (value) => {
-                    if (value === 'todas') {
-                        this.valorFiltro = '';
-                    } else if (value === 'mes' && this.mesesDisponibles.length > 0) {
-                        this.valorFiltro = this.mesesDisponibles[0].valor;
-                    } else if (value === 'dia' && this.diasDisponibles.length > 0) {
-                        this.valorFiltro = this.diasDisponibles[0];
-                    }
-                    this.filtrarVentas();
-                });
-                this.$watch('valorFiltro', () => this.filtrarVentas());
-            },
-
-            // Función helper para obtener detalles independientemente del formato
-            getDetalles(venta) {
-                return venta?.detalles || venta?.productos || [];
-            },
-
-            cargarDatos() {
-                this.ventas = JSON.parse(localStorage.getItem('historial_ventas')) || [];
-                this.extraerFechas();
-                this.filtrarVentas();
-            },
-
-            verTicket(venta) {
-                this.ticketActivo = venta;
-            },
-
-            imprimirDirecto(venta) {
-                this.ticketAImprimir = venta;
-                setTimeout(() => window.print(), 150);
-            },
-
-            abrirConfirmacion(titulo, mensaje, accion) {
-                Object.assign(this.confirmModal, { open: true, title: titulo, message: mensaje, onConfirm: accion });
-            },
-
-            cerrarConfirmacion() {
-                this.confirmModal.open = false;
-                setTimeout(() => { this.confirmModal.onConfirm = null; }, 200);
-            },
-
-            ejecutarConfirmacion() {
-                if (typeof this.confirmModal.onConfirm === 'function') this.confirmModal.onConfirm();
-                this.cerrarConfirmacion();
-            },
-
-            borrarVenta(id) {
-                this.abrirConfirmacion('¿Eliminar registro?', 'El ticket desaparecerá de tu historial.', () => {
-                    this.ventas = this.ventas.filter(v => v.id !== id);
-                    if (this.ticketActivo?.id === id) this.ticketActivo = null;
-                    this.guardarYActualizar();
-                });
-            },
-
-            borrarHistorialFiltrado() {
-                const mensajes = {
-                    dia: `Se eliminarán los tickets del día ${this.valorFiltro}.`,
-                    mes: `Se eliminarán los tickets del mes de ${this.valorFiltro}.`,
-                    todas: 'Se vaciará por completo el historial de ventas.'
-                };
-
-                this.abrirConfirmacion('¿Limpiar historial?', mensajes[this.tipoFiltro], () => {
-                    const idsABorrar = this.ventasFiltradas.map(v => v.id);
-                    this.ventas = this.ventas.filter(v => !idsABorrar.includes(v.id));
-                    this.ticketActivo = null;
-                    this.tipoFiltro = 'todas';
-                    this.guardarYActualizar();
-                });
-            },
-
-            guardarYActualizar() {
-                localStorage.setItem('historial_ventas', JSON.stringify(this.ventas));
-                this.cargarDatos();
-            },
-
-            extraerFechas() {
-                const diasSet = new Set();
-                const mesesMap = new Map();
-
-                this.ventas.forEach(v => {
-                    const fechaParte = v.fecha.split(',')[0].trim();
-                    diasSet.add(fechaParte);
-
-                    const partes = fechaParte.split('/');
-                    if (partes.length === 3) {
-                        const mesAnio = `${partes[1]}/${partes[2]}`;
-                        const fechaObj = new Date(partes[2], parseInt(partes[1]) - 1, 1);
-                        let nombreMes = fechaObj.toLocaleString('es-MX', { month: 'long', year: 'numeric' });
-                        mesesMap.set(mesAnio, nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1));
-                    }
-                });
-
-                this.diasDisponibles = Array.from(diasSet);
-                this.mesesDisponibles = Array.from(mesesMap).map(([valor, nombre]) => ({ valor, nombre }));
-            },
-
-            filtrarVentas() {
-                const filtros = {
-                    todas: () => this.ventas,
-                    dia: () => this.ventas.filter(v => v.fecha.split(',')[0].trim() === this.valorFiltro),
-                    mes: () => this.ventas.filter(v => {
-                        const partes = v.fecha.split(',')[0].trim().split('/');
-                        return `${partes[1]}/${partes[2]}` === this.valorFiltro;
-                    })
-                };
-                this.ventasFiltradas = (filtros[this.tipoFiltro] || filtros.todas)();
-                this.totalFiltro = this.ventasFiltradas.reduce((suma, venta) => suma + parseFloat(venta.total), 0);
-            },
-
-            formatMoney(amount) {
-                return '$' + Number(amount).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            }
-        }
-    }
-    </script>
-    @endsection
+@endsection
