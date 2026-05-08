@@ -2,7 +2,7 @@
 
 <div id="calendar-wrapper" class="bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 transition-colors duration-300">
     <!-- Encabezado del Calendario -->
-    <div class="flex items-center justify-between px-6 py-4 bg-gray-800 dark:bg-black text-white">
+    <div class="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white">
         <div class="flex items-center space-x-4">
             <h2 class="text-xl font-bold capitalize min-w-[150px]">
                 {{ $data['currentMonthName'] }}
@@ -11,7 +11,7 @@
             <!-- Selector de Año Adaptativo -->
             <select 
                 onchange="changeDate({{ $data['currentMonth'] }}, this.value)" 
-                class="bg-gray-700 dark:bg-gray-800 text-white text-sm rounded border-none focus:ring-2 focus:ring-blue-500 py-1 px-2 cursor-pointer transition-colors"
+                class="bg-white dark:bg-gray-700 text-gray-700 dark:text-white text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 py-1 px-3 cursor-pointer shadow-sm transition-all outline-none"
             >
                 @foreach($data['years'] as $year)
                     <option value="{{ $year }}" {{ $year == $data['currentYear'] ? 'selected' : '' }}>
@@ -21,8 +21,9 @@
             </select>
         </div>
 
+        <!--Botones de navegación dentro del calendario, comentados de momento por pruebas
         <div class="flex space-x-2">
-            <!-- Botón Anterior -->
+            // Botón Anterior 
             <button 
                 onclick="changeDate({{ $data['prevMonth'] }}, {{ $data['prevYear'] }})" 
                 class="p-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-full transition"
@@ -31,7 +32,7 @@
                 &larr; Anterior
             </button>
 
-            <!-- Botón Hoy -->
+            // Botón Hoy 
             <button 
                 onclick="changeDate({{ \Carbon\Carbon::now()->month }}, {{ \Carbon\Carbon::now()->year }})" 
                 class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-sm transition shadow-sm"
@@ -39,7 +40,7 @@
                 Hoy
             </button>
 
-            <!-- Botón Siguiente -->
+            // Botón Siguiente
             <button 
                 onclick="changeDate({{ $data['nextMonth'] }}, {{ $data['nextYear'] }})" 
                 class="p-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-full transition"
@@ -48,6 +49,7 @@
                 Siguiente &rarr;
             </button>
         </div>
+        -->
     </div>
 
     <!-- Rejilla del Calendario -->
@@ -101,3 +103,16 @@
         -->
     </div>
 </div>
+
+<style>
+    /* Ocultar barra de desplazamiento para Chrome, Safari y Opera */
+    .event-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Ocultar barra de desplazamiento para IE, Edge y Firefox */
+    .event-container {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+</style>

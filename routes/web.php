@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\BrickPagoController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\FacturaController;
 use Illuminate\Support\Facades\Http;
 // Imports para ruta principal /
 use App\Models\Service;
@@ -94,6 +95,13 @@ Route::get('/caja', function () {
 })->name('caja');
 
 Route::get('/newcalendar', [CalendarController::class, 'index'])->name('calendar.index');
+
+//RUTAS DE FACTURACIÓN (ACOMODAR DESPUÉS DE PROBAR)
+// Mostrar el formulario
+Route::get('/factura/crear', [FacturaController::class, 'create'])->name('factura.crear');
+
+// Procesar el formulario
+Route::post('/factura/crear', [FacturaController::class, 'facturar'])->name('venta.facturar');
 
 // =========================================================
 // RUTAS DE LA PLANTILLA Y MERCADO PAGO

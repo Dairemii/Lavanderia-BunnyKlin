@@ -68,6 +68,11 @@ class MenuHelper
                         'icon' => 'ui-elements',
                         'path' => '/newcalendar',
                     ],
+                    [
+                        'name' => 'Facturación',
+                        'icon' => 'forms',
+                        'path' => '/factura/crear',
+                    ],
                 ],
             ],
         ];
