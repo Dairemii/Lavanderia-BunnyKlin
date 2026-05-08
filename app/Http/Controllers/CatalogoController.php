@@ -53,4 +53,22 @@ class CatalogoController extends Controller
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function destroy(Request $request)
+    {
+        $request->validate([
+            'id'       => 'required|integer',
+            'category' => 'required|string',
+        ]);
+
+        try {
+            // Llamamos al servicio pasando la categoría y el ID
+            $this->catalogoService->eliminarElemento($request->category, $request->id);
+
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
 }

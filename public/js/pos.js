@@ -1,6 +1,6 @@
-function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
+function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
     const adaptarCatalogo = (data, category) => {
-        return (data || []).map((item) => ({
+        return data.map((item) => ({
             id: item.id,
             name: item.name,
             price: parseFloat(item.price),
@@ -16,27 +16,27 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
         activeMode: "sale",
         showPreConfirmacion: false,
         showConfirmacion: false,
-        lastSale: null,
-        itemModal: {
-            open: false,
-            mode: "add",
-            category: "",
-            id: null,
-            name: "",
-            price: "",
-            description: "",
-            stock: 0,
-            unit: "",
-            duration_months: 1,
-        },
+        
+        // Estados para la Terminal
+        esperandoTerminal: false,
+        showErrorModal: false,
+        errorPago: "",
 
+        ultimaVenta: null,
+        itemModal: { open: false, mode: "add", category: "", id: null, name: "", price: "", description: "", stock: 0, unit: "", duration_months: 1 },
         clienteForm: { nombre: "", telefono: "", inicio: "", fin: "" },
-
         services: adaptarCatalogo(servicesDb, "services"),
         supplies: adaptarCatalogo(suppliesDb, "supplies"),
         subscriptions: adaptarCatalogo(subscriptionsDb, "subscriptions"),
-        extras: adaptarCatalogo(extrasDb, "extras"),
         cart: [],
+
+        formatMoney(amount) {
+            return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(amount);
+        },
+
+        get total() {
+            return this.cart.reduce((sum, item) => sum + item.price * (parseFloat(item.quantity) || 0), 0);
+        },
 
         toggleMode(mode) {
             this.activeMode = this.activeMode === mode ? "sale" : mode;
@@ -48,176 +48,10 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             else this.addToCart(item, category);
         },
 
-        openAddModal(category) {
-            this.itemModal = {
-                open: true,
-                mode: "add",
-                category: category,
-                id: null,
-                name: "",
-                price: "",
-                description: "",
-                stock: 0,
-                unit: "",
-                duration_months: 1,
-            };
-        },
-        
-        openEditModal(item, category) {
-            this.itemModal = {
-                open: true,
-                mode: "edit",
-                category: category,
-                id: item.id,
-                name: item.name,
-                price: item.price,
-                description: item.description || null,
-                stock: item.stock || null,
-                unit: item.unit || null,
-                duration_months: item.duration_months || null,
-            };
-        },
-        
-        openDeleteModal(item, category) {
-            this.itemModal = {
-                open: true,
-                mode: "delete",
-                category: category,
-                id: item.id,
-                name: item.name,
-                price: item.price,
-                description: item.description || null,
-                stock: item.stock || null,
-                unit: item.unit || null,
-                duration_months: item.duration_months || null,
-            };
-        },
-        
-        closeModal() {
-            this.itemModal.open = false;
-        },
-
-        async saveItem() {
-            if (!this.itemModal.name.trim() || this.itemModal.price === "") return;
-
-            let priceVal = parseFloat(this.itemModal.price) || 0;
-
-            const payload = {
-                id: this.itemModal.id,
-                category: this.itemModal.category,
-                name: this.itemModal.name,
-                price: priceVal,
-                description: this.itemModal.description,
-                stock: this.itemModal.stock,
-                unit: this.itemModal.unit,
-                duration_months: this.itemModal.duration_months,
-            };
-
-            let targetList =
-                this.itemModal.category === "services" ? this.services
-                : this.itemModal.category === "supplies" ? this.supplies
-                : this.itemModal.category === "subscriptions" ? this.subscriptions
-                : this.extras;
-
-            try {
-                if (this.itemModal.mode === "add") {
-                    const response = await fetch("/catalogo/guardar", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Accept: "application/json",
-                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-                        },
-                        body: JSON.stringify(payload),
-                    });
-
-                    if (!response.ok) {
-                        const errorCrudo = await response.text();
-                        console.error("🚨 DETALLE DEL ERROR DE LARAVEL:", errorCrudo);
-                        try {
-                            const errorJson = JSON.parse(errorCrudo);
-                            alert("Error del servidor: " + (errorJson.message || errorJson.error));
-                        } catch (e) {
-                            alert("Error crítico del servidor. Revisa la consola.");
-                        }
-                        return;
-                    }
-
-                    const data = await response.json();
-
-                    targetList.push({
-                        id: data.item.id,
-                        name: data.item.name,
-                        price: parseFloat(data.item.price),
-                        category: this.itemModal.category,
-                    });
-                } else {
-                    const response = await fetch("/catalogo/actualizar", {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Accept: "application/json",
-                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-                        },
-                        body: JSON.stringify(payload),
-                    });
-
-                    if (!response.ok) throw new Error("Error al actualizar");
-
-                    const data = await response.json();
-
-                    let idx = targetList.findIndex((i) => i.id === this.itemModal.id);
-                    if (idx !== -1) {
-                        targetList[idx].name = data.item.name;
-                        targetList[idx].price = parseFloat(data.item.price);
-                        targetList[idx].description = data.item.description || null;
-                        targetList[idx].stock = data.item.stock || null;
-                        targetList[idx].unit = data.item.unit || null;
-                        targetList[idx].duration_months = data.item.duration_months || null;
-                    }
-                }
-
-                this.closeModal();
-            } catch (error) {
-                console.error(error);
-                alert("Hubo un problema al intentar guardar el elemento.");
-            }
-        },
-
-        deleteItem() {
-            let targetList =
-                this.itemModal.category === "services" ? this.services
-                : this.itemModal.category === "supplies" ? this.supplies
-                : this.itemModal.category === "subscriptions" ? this.subscriptions
-                : this.extras;
-
-            let idx = targetList.findIndex((i) => i.id === this.itemModal.id);
-            if (idx !== -1) {
-                targetList.splice(idx, 1);
-                this.cart = this.cart.filter(
-                    (c) => !(c.id === this.itemModal.id && c.category === this.itemModal.category)
-                );
-            }
-            if (typeof this.guardarCatalogos === 'function') {
-                this.guardarCatalogos(); 
-            }
-            this.closeModal();
-        },
-
         addToCart(item, category) {
-            let found = this.cart.find(
-                (i) => i.id === item.id && i.category === category,
-            );
-            if (found) {
-                found.quantity++;
-            } else {
-                this.cart.push({ 
-                    ...item, 
-                    category: category, 
-                    quantity: 1,
-                    cart_id: category + '-' + item.id 
-                });
-            }
+            let found = this.cart.find((i) => i.id === item.id && i.category === category);
+            if (found) found.quantity++;
+            else this.cart.push({ ...item, category, quantity: 1 });
         },
 
         updateQty(index, amount) {
@@ -225,91 +59,111 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             if (this.cart[index].quantity <= 0) this.removeItem(index);
         },
 
-        removeItem(index) {
-            this.cart.splice(index, 1);
-        },
-        
-        clearCart() {
-            this.cart = [];
-        },
+        removeItem(index) { this.cart.splice(index, 1); },
+        clearCart() { this.cart = []; },
 
-        get total() {
-            return this.cart.reduce((sum, item) => sum + item.price * (parseFloat(item.quantity) || 0), 0);
-        },
-        
-        formatMoney(amount) {
-            return new Intl.NumberFormat("es-MX", {
-                style: "currency",
-                currency: "MXN",
-            }).format(amount);
-        },
-        
-        checkout() {
-            if (this.cart.length) {
-                const today = new Date();
-                const nextMonth = new Date();
-                nextMonth.setDate(today.getDate() + 30); 
+        // ==========================================
+        // LÓGICA DE COBRO
+        // ==========================================
+        async confirmarCheckout(metodo = "Terminal") {
+            if (metodo === "Terminal") {
+                if (this.total < 5) {
+                    this.mostrarError("El monto mínimo es de $5.00 MXN para procesar tarjeta.");
+                    return;
+                }
 
-                this.clienteForm = {
-                    nombre: "",
-                    telefono: "",
-                    inicio: today.toISOString().split("T")[0],
-                    fin: nextMonth.toISOString().split("T")[0],
-                };
-                this.showPreConfirmacion = true;
+                try {
+                    // Ocultar pre-confirmación y mostrar pantalla de carga
+                    this.showPreConfirmacion = false;
+                    this.esperandoTerminal = true;
+
+                    const response = await fetch("/terminal/cobrar", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json",
+                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+                        },
+                        body: JSON.stringify({ total: this.total })
+                    });
+
+                    if (!response.headers.get("content-type")?.includes("application/json")) {
+                        throw new Error("Error interno del servidor al iniciar el cobro.");
+                    }
+
+                    const data = await response.json();
+                    if (!data.success) throw new Error(data.error || data.mensaje || "Error al conectar con la terminal.");
+
+                    const intentId = data.payment_intent_id;
+                    let pagoFinalizado = false;
+                    let intentosFallidos = 0;
+
+                    // BUCLE DE ESPERA ACTIVA MEJORADO
+                    while (!pagoFinalizado) {
+                        await new Promise(resolve => setTimeout(resolve, 3000));
+
+                        try {
+                            const statusRes = await fetch(`/terminal/estado/${intentId}`);
+                            
+                            // Tolerancia a fallos del servidor/red
+                            if (!statusRes.headers.get("content-type")?.includes("application/json")) {
+                                intentosFallidos++;
+                                if(intentosFallidos > 5) throw new Error("Se perdió la conexión prolongada con el servidor.");
+                                continue; 
+                            }
+
+                            const statusData = await statusRes.json();
+                            intentosFallidos = 0; // Reiniciamos contador si hubo éxito de conexión
+
+                            if (statusData.status === 'FINISHED') {
+                                pagoFinalizado = true;
+                                this.esperandoTerminal = false;
+                                this.finalizarVentaLocal("Tarjeta");
+                            } 
+                            else if (statusData.status === 'CANCELED' || statusData.status === 'ABANDONED' || statusData.status === 'ERROR') {
+                                pagoFinalizado = true; 
+                                throw new Error("El pago fue cancelado o rechazado directamente en la terminal.");
+                            }
+                            // Si es OPEN, PROCESSING, UNKNOWN o RETRY, sigue el bucle
+
+                        } catch (pollError) {
+                            if (pollError.message.includes("cancelado") || pollError.message.includes("prolongada")) {
+                                throw pollError;
+                            }
+                            intentosFallidos++;
+                            if (intentosFallidos > 5) throw new Error("Fallo de red constante. Verifica tu conexión a internet.");
+                        }
+                    }
+
+                } catch (error) {
+                    console.error("Detalle del error:", error);
+                    this.esperandoTerminal = false; 
+                    this.mostrarError(error.message); 
+                }
+                return;
             }
-        },
-        
-        cancelarCheckout() {
-            this.showPreConfirmacion = false;
+            
+            // Cobro en Efectivo
+            this.finalizarVentaLocal("Efectivo");
         },
 
-        confirmarCheckout() {
+        finalizarVentaLocal(metodo) {
             let historial = JSON.parse(localStorage.getItem("historial_ventas")) || [];
-            let numeroTicket = historial.length + 1;
-            let folioSecuencial = "BK-" + numeroTicket.toString().padStart(4, "0");
+            let folio = "BK-" + (historial.length + 1).toString().padStart(4, "0");
 
             const nuevaVenta = {
                 id: Date.now(),
-                folio: folioSecuencial,
-                fecha: new Date().toLocaleString("es-MX", {
-                    timeZone: "America/Mexico_City",
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                }),
+                folio: folio,
+                fecha: new Date().toLocaleString("es-MX"),
                 total: this.total,
-                metodo: "Efectivo",
+                metodo: metodo,
                 detalles: JSON.parse(JSON.stringify(this.cart)),
                 cliente: this.clienteForm.nombre || "Público en General",
             };
 
             historial.unshift(nuevaVenta);
             localStorage.setItem("historial_ventas", JSON.stringify(historial));
-
-            if (this.clienteForm.nombre.trim() !== "") {
-                let subscripcionComprada = this.cart.find((item) => item.category === "subscriptions");
-                let planName = subscripcionComprada ? subscripcionComprada.name : "Ninguna";
-                let prendas = this.cart
-                    .filter((i) => i.category === "services")
-                    .map((i) => i.quantity + "x " + i.name)
-                    .join(", ");
-
-                let clientes = JSON.parse(localStorage.getItem("lavanderia_clientes_final_v2")) || [];
-                clientes.unshift({
-                    id: Date.now(),
-                    name: this.clienteForm.nombre,
-                    phone: this.clienteForm.telefono,
-                    items: prendas || "Solo pago de plan",
-                    status: "Pendiente",
-                    subscription: planName,
-                    subscriptionEndDate: planName !== "Ninguna" ? this.clienteForm.fin : "",
-                });
-                localStorage.setItem("lavanderia_clientes_final_v2", JSON.stringify(clientes));
-            }
+            if (this.clienteForm.nombre.trim() !== "") this.registrarClienteLocal();
 
             this.ultimaVenta = nuevaVenta;
             this.showPreConfirmacion = false;
@@ -317,8 +171,41 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             this.clearCart();
         },
 
-        cerrarConfirmacion() {
-            this.showConfirmacion = false;
+        registrarClienteLocal() {
+            let sub = this.cart.find(i => i.category === "subscriptions");
+            let clientes = JSON.parse(localStorage.getItem("lavanderia_clientes_final_v2")) || [];
+            clientes.unshift({
+                id: Date.now(),
+                name: this.clienteForm.nombre,
+                phone: this.clienteForm.telefono,
+                status: "Pendiente",
+                subscription: sub ? sub.name : "Ninguna",
+            });
+            localStorage.setItem("lavanderia_clientes_final_v2", JSON.stringify(clientes));
         },
+
+        // --- MÉTODOS UI ---
+        openAddModal(category) { this.itemModal = { open: true, mode: "add", category, id: null, name: "", price: "", description: "", stock: 0, unit: "", duration_months: 1 }; },
+        openEditModal(item, category) { this.itemModal = { open: true, mode: "edit", category, id: item.id, name: item.name, price: item.price, description: item.description, stock: item.stock, unit: item.unit, duration_months: item.duration_months }; },
+        openDeleteModal(item, category) { this.itemModal = { open: true, mode: "delete", category, ...item }; },
+        closeModal() { this.itemModal.open = false; },
+        
+        checkout() { 
+            if (this.cart.length) this.showPreConfirmacion = true; 
+        },
+        cancelarCheckout() { 
+            this.showPreConfirmacion = false; 
+        },
+        cerrarConfirmacion() { 
+            this.showConfirmacion = false; 
+        },
+        mostrarError(mensaje) {
+            this.errorPago = mensaje;
+            this.showErrorModal = true;
+        },
+        cerrarErrorModal() {
+            this.showErrorModal = false;
+            this.showPreConfirmacion = true;
+        }
     };
 }
