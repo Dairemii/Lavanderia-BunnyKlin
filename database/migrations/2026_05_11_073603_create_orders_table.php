@@ -10,19 +10,20 @@ return new class () extends Migration {
      */
     public function up(): void
     {
-        Schema::create('sales', function (Blueprint $table) {
+        Schema::create('orders', function (Blueprint $table) {
             $table->id();
 
+            $table->foreignId('sale_id')
+                ->unique()
+                ->constrained('sales')
+                ->cascadeOnDelete();
             $table->foreignId('client_id')
                 ->nullable()
                 ->constrained('clients')
                 ->nullOnDelete();
-            $table->decimal('total', 10, 2);
-            $table->string('payment_method', 30);
-            $table->string('payment_form', 5)->nullable();
-            $table->string('facturapi_id')->nullable();
-            $table->date('billed_at');
-            $table->string('status', 20)->default('pagado');
+            $table->string('status', 20)->default('pendiente');
+            $table->string('details')->nullable();
+            $table->dateTime('delivery_date')->nullable();
 
             $table->timestamps();
         });
@@ -33,6 +34,6 @@ return new class () extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('sales');
+        Schema::dropIfExists('orders');
     }
 };
