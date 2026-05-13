@@ -21,73 +21,74 @@ class FacturaController extends Controller
 
     public function facturar(Request $request)
     {
-    //Codigo para mostrar los datos que manda a facturapi    
-    //dd($request->all());
-        // 1. Validamos los campos. 
-        // Nota: 'venta_data' debe ser un string (el JSON de AlpineJS)
+        // 1. Validaciones
         $request->validate([
-            'venta_data' => 'required|string',
-            'legal_name' => 'required|string|min:3',
-            'tax_id'     => 'required|string',
-            'tax_system' => 'required',
-            'email'      => 'required|email',
-            'zip'        => 'required|digits:5',
+            'venta_data'     => 'required|string',
+            'legal_name'     => 'required|string|min:3',
+            'tax_id'         => 'required|string',
+            'tax_system'     => 'required',
+            'use_cfdi'       => 'required', 
+            'payment_method' => 'required', 
+            'payment_form'   => 'required', 
+            'email'          => 'required|email',
+            'zip'            => 'required|digits:5',
         ]);
 
-        // 2. Decodificamos la venta enviada desde el cliente
+        // 2. Decodificamos la venta
         $venta = json_decode($request->venta_data);
 
-        // Seguridad: Si el JSON es inválido o no tiene servicios, regresamos error
-        if (!$venta || !isset($venta->detalles)) {
+        // CORRECCIÓN: Validamos 'items' en lugar de 'detalles' según tu estructura de BD
+        if (!$venta || !isset($venta->items)) {
             return back()->withErrors(['error' => 'No has seleccionado una venta válida o la venta no tiene productos.'])->withInput();
         }
 
-        // 3. Mapeamos los datos del cliente
+        // 3. Lógica para CFDI 4.0 y RFC Genérico
         $taxSystem = $request->tax_id === 'XAXX010101000' ? '616' : $request->tax_system;
+        $useCfdi   = $request->tax_id === 'XAXX010101000' ? 'S01' : $request->use_cfdi;
 
         $cliente = [
-            "legal_name" => $request->legal_name,
+            "legal_name" => strtoupper($request->legal_name),
             "tax_id"     => $request->tax_id,
             "tax_system" => $taxSystem,
+            "use"        => $useCfdi,
             "email"      => $request->email,
             "address"    => ["zip" => $request->zip]
         ];
 
-        // 4. Creamos los items para Facturapi recorriendo los servicios de la venta
+        // --- NUEVO: MAPEADOR DE CLAVES SAT ---
+        $clavesSat = [
+            'App\Models\Supply'       => '47131800', // Suministros
+            'App\Models\Service'      => '91111502', // Lavandería
+            'App\Models\Subscription' => '93161700', // Suscripciones
+        ];
+
+        // 4. Mapeamos los items usando la información de la imagen image_583811.png
         $items = [];
-        foreach ($venta->detalles as $item) {
+        foreach ($venta->items as $item) {
+            // Buscamos la clave según el tipo, si no existe usamos lavandería por defecto
+            $productKey = $clavesSat[$item->item_type] ?? '91111502';
+
             $items[] = [
                 "quantity" => $item->quantity,
                 "product" => [
-                    "description" => $item->name,
-                    "product_key" => "91111502", // Clave SAT Lavandería
-                    "price"       => $item->price,
+                    "description" => $item->name_snapshot, // Nombre guardado en la venta
+                    "product_key" => $productKey,        // Clave dinámica
+                    "price"       => $item->price_snapshot, // Precio guardado en la venta
                     "tax_included" => true
                 ]
             ];
         }
 
-        // Si tu venta NO trae detalles y solo quieres facturar el total global:
-        /*
-        $items[] = [
-            "quantity" => 1,
-            "product" => [
-                "description" => "Servicio de Lavandería Folio: " . $venta->folio,
-                "product_key" => "91111502",
-                "price"       => $venta->total,
-                "tax_included" => true
-            ]
-        ];
-        */
-
         try {
             // 5. Ejecutamos la facturación
-            // Llamamos al servicio (usando '01' Efectivo o '03' Transferencia como default)
-            $factura = $this->facturacion->crearFactura($cliente, $items, '03');
+            $factura = $this->facturacion->crearFactura(
+                $cliente, 
+                $items, 
+                $request->payment_form, 
+                $request->payment_method
+            );
             
-            // Obtenemos la URL del PDF (con fallback por si el objeto no trae la propiedad)
-            // En lugar de la URL del dashboard, usamos la URL de descarga directa
-            $pdfUrl = "https://www.facturapi.io/invoices/{$factura->id}";
+            $pdfUrl = $factura->files->pdf ?? "https://www.facturapi.io/v2/invoices/{$factura->id}/pdf";
             
             return redirect()->route('factura.crear')->with(
                 'success', 
