@@ -178,10 +178,10 @@
     </div>
 
     {{-- MODAL --}}
-    <div x-show="isModalOpen" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-[#1E55AA]/40 backdrop-blur-sm" x-transition.opacity.duration.200ms style="display: none;">
+    <div x-show="isModalOpen" class="fixed inset-0 z-99999 flex items-center justify-center p-4 bg-[#1E55AA]/40 backdrop-blur-sm" x-transition.opacity.duration.200ms style="display: none;">
         <div class="absolute inset-0" @click="closeModal()"></div>
 
-        <div class="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-white rounded-3xl shadow-[0_20px_60px_rgba(30,85,170,0.15)] border-2 border-slate-100 p-8 animate-fade-in" @click.stop>
+        <div class="relative w-full max-w-2xl max-h-[80vh] overflow-y-auto custom-scrollbar bg-white rounded-3xl shadow-[0_20px_60px_rgba(30,85,170,0.15)] border-2 border-slate-100 p-8 animate-fade-in" @click.stop>
 
             <h3 class="text-2xl font-black text-[#1E55AA] mb-6" x-text="modalMode === 'add' ? 'Registrar Cliente' : (modalMode === 'edit' ? 'Editar Información' : 'Detalles del Cliente')"></h3>
 
@@ -232,49 +232,69 @@
                     <label for="wantsBilling" class="font-black text-[#1E55AA] cursor-pointer select-none">El cliente requiere facturar (CFDI 4.0)</label>
                 </div>
 
-                {{-- Datos Fiscales (Aparecen si se activa el checkbox) --}}
+                {{-- Datos Fiscales y Dirección (Aparecen si se activa el checkbox) --}}
                 <div x-show="currentClient.wantsBilling" x-collapse>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#F4F8FC]/50 p-6 rounded-2xl border-2 border-[#1E55AA]/10">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 bg-[#F4F8FC]/50 p-6 rounded-2xl border-2 border-[#1E55AA]/10">
 
-                        <div class="col-span-1 md:col-span-2">
+                        <div class="col-span-1 md:col-span-8">
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Razón Social</label>
                             <input type="text" x-model="currentClient.razon_social" :disabled="modalMode === 'view'" placeholder="NOMBRE APELLIDO / EMPRESA"
                                 class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] uppercase">
                         </div>
 
-                        <div>
+                        <div class="col-span-1 md:col-span-4">
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">RFC</label>
                             <input type="text" x-model="currentClient.rfc" :disabled="modalMode === 'view'" placeholder="XAXX010101000" maxlength="13"
                                 class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] uppercase">
                         </div>
 
-                        <div>
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Código Postal</label>
+                        {{-- Separador Visual --}}
+                        <div class="col-span-1 md:col-span-12 border-t border-slate-200 my-2">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-[#F4F8FC] pr-2 -mt-3 absolute">Dirección Fiscal</span>
+                        </div>
+
+                        <div class="col-span-1 md:col-span-6">
+                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Calle</label>
+                            <input type="text" x-model="currentClient.calle" :disabled="modalMode === 'view'" placeholder="Ej. Av. Universidad"
+                                class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
+                        </div>
+
+                        <div class="col-span-1 md:col-span-3">
+                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Nº Ext.</label>
+                            <input type="text" x-model="currentClient.numero_exterior" :disabled="modalMode === 'view'" placeholder="123"
+                                class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
+                        </div>
+
+                        <div class="col-span-1 md:col-span-3">
+                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Nº Int.</label>
+                            <input type="text" x-model="currentClient.numero_interior" :disabled="modalMode === 'view'" placeholder="Apto 4"
+                                class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
+                        </div>
+
+                        <div class="col-span-1 md:col-span-5">
+                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Colonia</label>
+                            <input type="text" x-model="currentClient.colonia" :disabled="modalMode === 'view'" placeholder="Ej. Centro Histórico"
+                                class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
+                        </div>
+
+                        <div class="col-span-1 md:col-span-4">
+                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Ciudad / Municipio</label>
+                            <input type="text" x-model="currentClient.ciudad" :disabled="modalMode === 'view'" placeholder="San Juan del Río"
+                                class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
+                        </div>
+
+                        <div class="col-span-1 md:col-span-3">
+                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">C.P.</label>
                             <input type="text" x-model="currentClient.codigo_postal" :disabled="modalMode === 'view'" placeholder="76800" maxlength="5"
                                 class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
                         </div>
 
-                        <div>
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Uso de CFDI</label>
-                            <select x-model="currentClient.uso_cfdi" :disabled="modalMode === 'view'"
-                                class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] appearance-none cursor-pointer">
-                                <option value="">Seleccionar...</option>
-                                <option value="G03">G03 - Gastos en general</option>
-                                <option value="S01">S01 - Sin efectos fiscales</option>
-                            </select>
+                        <div class="col-span-1 md:col-span-12">
+                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Estado</label>
+                            <input type="text" x-model="currentClient.estado" :disabled="modalMode === 'view'" placeholder="Querétaro"
+                                class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
                         </div>
 
-                        <div>
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Régimen Fiscal</label>
-                            <select x-model="currentClient.regimen_fiscal" :disabled="modalMode === 'view'"
-                                class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] appearance-none cursor-pointer">
-                                <option value="">Seleccionar...</option>
-                                <option value="616">616 - Sin obligaciones fiscales</option>
-                                <option value="601">601 - General de Ley Personas Morales</option>
-                                <option value="605">605 - Sueldos y Salarios</option>
-                                <option value="626">626 - RESICO</option>
-                            </select>
-                        </div>
                     </div>
                 </div>
 

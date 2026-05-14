@@ -11,13 +11,17 @@ document.addEventListener("alpine:init", () => {
             name: "",
             phone: "",
             subscription_id: "",
-            end_subscription: "",
+            start_subscription: new Date().toISOString().split("T").shift(),
             wantsBilling: false,
             rfc: "",
             razon_social: "",
-            uso_cfdi: "",
-            regimen_fiscal: "",
             codigo_postal: "",
+            calle: "",
+            numero_exterior: "",
+            numero_interior: "",
+            colonia: "",
+            ciudad: "",
+            estado: "",
         },
 
         async init() {
@@ -121,7 +125,7 @@ document.addEventListener("alpine:init", () => {
             this.modalMode = mode;
 
             // Obtenemos la fecha de hoy en formato YYYY-MM-DD
-            const hoy = new Date().toISOString().split("T");
+            const hoy = new Date().toISOString().split("T").shift();
 
             if (client) {
                 this.currentClient = {
@@ -134,13 +138,17 @@ document.addEventListener("alpine:init", () => {
                     name: "",
                     phone: "",
                     subscription_id: "",
-                    start_subscription: hoy, // <-- Pre-llenado automático
+                    start_subscription: hoy,
                     wantsBilling: false,
                     rfc: "",
                     razon_social: "",
-                    uso_cfdi: "",
-                    regimen_fiscal: "",
                     codigo_postal: "",
+                    calle: "",
+                    numero_exterior: "",
+                    numero_interior: "",
+                    colonia: "",
+                    ciudad: "",
+                    estado: "",
                 };
             }
             this.isModalOpen = true;
@@ -163,6 +171,23 @@ document.addEventListener("alpine:init", () => {
                         : `/api/clientes/${this.currentClient.id}`;
                 const method = this.modalMode === "add" ? "POST" : "PUT";
 
+                // --- LIMPIEZA DE DATOS ANTES DE ENVIAR ---
+                let payload = JSON.parse(JSON.stringify(this.currentClient));
+
+                // Si el ID de suscripción viene vacío o es "0", lo hacemos null
+                if (
+                    !payload.subscription_id ||
+                    payload.subscription_id === ""
+                ) {
+                    payload.subscription_id = null;
+                    // Y SI NO HAY SUSCRIPCIÓN, LA FECHA DE INICIO DEBE SER NULL
+                    payload.start_subscription = null;
+                }
+                // Si hay suscripción, pero la fecha está vacía, también a null
+                else if (payload.start_subscription === "") {
+                    payload.start_subscription = null;
+                }
+
                 const response = await fetch(url, {
                     method: method,
                     headers: {
@@ -170,7 +195,8 @@ document.addEventListener("alpine:init", () => {
                         Accept: "application/json",
                         "X-CSRF-TOKEN": token,
                     },
-                    body: JSON.stringify(this.currentClient),
+                    // Enviamos nuestro payload limpio en lugar de this.currentClient directamente
+                    body: JSON.stringify(payload),
                 });
 
                 if (!response.ok) {

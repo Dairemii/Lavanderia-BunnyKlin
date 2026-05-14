@@ -22,9 +22,13 @@ return new class () extends Migration {
             $table->date('end_subscription')->nullable();
             $table->string('rfc', 14)->nullable();
             $table->string('razon_social')->nullable();
-            $table->string('uso_cfdi', 10)->nullable();
-            $table->string('regimen_fiscal', 10)->nullable();
             $table->string('codigo_postal', 5)->nullable();
+            $table->string('calle')->nullable();
+            $table->string('numero_exterior', 20)->nullable();
+            $table->string('numero_interior', 20)->nullable();
+            $table->string('colonia')->nullable();
+            $table->string('ciudad')->nullable();
+            $table->string('estado')->nullable();
 
             $table->timestamps();
         });

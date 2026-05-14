@@ -31,16 +31,20 @@ class ClientController extends Controller
     public function store(Request $request)
     {
         $datosValidados = $request->validate([
-            'name'             => 'required|string|max:100',
-            'phone'            => 'nullable|string|max:20',
-            'subscription_id'  => 'nullable|exists:subscriptions,id',
+            'name'              => 'required|string|max:100',
+            'phone'             => 'nullable|string|max:20',
+            'subscription_id'   => 'nullable|exists:subscriptions,id',
             'start_subscription' => 'nullable|date',
-            'wantsBilling'     => 'boolean',
-            'rfc'              => 'nullable|string|max:14',
-            'razon_social'     => 'nullable|string|max:255',
-            'uso_cfdi'         => 'nullable|string|max:10',
-            'regimen_fiscal'   => 'nullable|string|max:10',
-            'codigo_postal'    => 'nullable|string|max:5',
+            'wantsBilling'      => 'boolean',
+            'rfc'               => 'nullable|string|max:14',
+            'razon_social'      => 'nullable|string|max:255',
+            'codigo_postal'     => 'nullable|string|max:5',
+            'calle'             => 'nullable|string|max:255',
+            'numero_exterior'   => 'nullable|string|max:20',
+            'numero_interior'   => 'nullable|string|max:20',
+            'colonia'           => 'nullable|string|max:255',
+            'ciudad'            => 'nullable|string|max:255',
+            'estado'            => 'nullable|string|max:255',
         ]);
 
         $client = $this->clientService->guardarCliente($datosValidados);
@@ -52,16 +56,20 @@ class ClientController extends Controller
     public function update(Request $request, Client $client)
     {
         $datosValidados = $request->validate([
-            'name'             => 'required|string|max:100',
-            'phone'            => 'nullable|string|max:20',
-            'subscription_id'  => 'nullable|exists:subscriptions,id',
-            'end_subscription' => 'nullable|date',
-            'wantsBilling'     => 'boolean',
-            'rfc'              => 'nullable|string|max:14',
-            'razon_social'     => 'nullable|string|max:255',
-            'uso_cfdi'         => 'nullable|string|max:10',
-            'regimen_fiscal'   => 'nullable|string|max:10',
-            'codigo_postal'    => 'nullable|string|max:5',
+            'name'              => 'required|string|max:100',
+            'phone'             => 'nullable|string|max:20',
+            'subscription_id'   => 'nullable|exists:subscriptions,id',
+            'start_subscription' => 'nullable|date',
+            'wantsBilling'      => 'boolean',
+            'rfc'               => 'nullable|string|max:14',
+            'razon_social'      => 'nullable|string|max:255',
+            'codigo_postal'     => 'nullable|string|max:5',
+            'calle'             => 'nullable|string|max:255',
+            'numero_exterior'   => 'nullable|string|max:20',
+            'numero_interior'   => 'nullable|string|max:20',
+            'colonia'           => 'nullable|string|max:255',
+            'ciudad'            => 'nullable|string|max:255',
+            'estado'            => 'nullable|string|max:255',
         ]);
 
         $client = $this->clientService->guardarCliente($datosValidados, $client);

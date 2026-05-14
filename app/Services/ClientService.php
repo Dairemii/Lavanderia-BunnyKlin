@@ -21,9 +21,13 @@ class ClientService
             if (empty($datos['wantsBilling']) || $datos['wantsBilling'] == false) {
                 $datos['rfc']            = null;
                 $datos['razon_social']   = null;
-                $datos['uso_cfdi']       = null;
-                $datos['regimen_fiscal'] = null;
                 $datos['codigo_postal']  = null;
+                $datos['calle']           = null;
+                $datos['numero_exterior'] = null;
+                $datos['numero_interior'] = null;
+                $datos['colonia']         = null;
+                $datos['ciudad']          = null;
+                $datos['estado']          = null;
             }
 
             // 2. CÁLCULO DE LA SUSCRIPCIÓN CON PHP (Carbon)

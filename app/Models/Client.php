@@ -16,9 +16,13 @@ class Client extends Model
         'end_subscription',
         'rfc',
         'razon_social',
-        'uso_cfdi',
-        'regimen_fiscal',
         'codigo_postal',
+        'calle',
+        'numero_exterior',
+        'numero_interior',
+        'colonia',
+        'ciudad',
+        'estado',
     ];
 
     // Casteo de datos: Le decimos a Laravel que trate este campo como un objeto Carbon (Fecha)
