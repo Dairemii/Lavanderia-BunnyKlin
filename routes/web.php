@@ -54,6 +54,12 @@ Route::delete('/ventas/bulk', [App\Http\Controllers\SalesController::class, 'des
 // Ruta para borrar una sola venta
 Route::delete('/ventas/{id}', [App\Http\Controllers\SalesController::class, 'destroy'])->name('ventas.destroy');
 
+// Rutas para clientes
+Route::get('/api/clientes/init', [App\Http\Controllers\ClientController::class, 'apiInit']);
+Route::post('/api/clientes', [App\Http\Controllers\ClientController::class, 'store']);
+Route::put('/api/clientes/{client}', [App\Http\Controllers\ClientController::class, 'update']);
+Route::delete('/api/clientes/{client}', [App\Http\Controllers\ClientController::class, 'destroy']);
+
 Route::get('/historial', function () {
     return view('pages.historial', ['title' => 'Historial de Ventas']);
 })->name('historial');

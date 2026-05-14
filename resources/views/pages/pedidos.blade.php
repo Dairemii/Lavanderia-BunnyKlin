@@ -29,7 +29,7 @@
 </style>
 
 <div x-data="ordersManager()" x-cloak class="font-nunito relative min-h-[85vh] bg-[#F4F8FC] text-[#1E55AA] selection:bg-[#FFE63C] selection:text-[#1E55AA] rounded-3xl p-4 md:p-6 2xl:p-10 z-10 overflow-hidden">
-    
+
     {{-- Fondo Decorativo --}}
     <div class="absolute inset-0 -z-10 pointer-events-none">
         <div class="absolute top-[-10%] left-[-5%] w-[40vw] h-[40vw] rounded-full bg-[#1E55AA]/5 blur-[100px] animate-float"></div>
@@ -85,7 +85,7 @@
                 <tbody class="divide-y divide-slate-100">
                     <template x-for="(order, index) in filteredOrders" :key="order.id">
                         <tr class="hover:bg-[#F4F8FC]/50 transition-colors duration-200">
-                            
+
                             <td class="px-6 py-4">
                                 <span class="text-xs font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md mb-1 inline-block" x-text="order.ticket"></span>
                                 <h5 class="font-black text-lg text-[#1E55AA]" x-text="order.name"></h5>
@@ -102,7 +102,7 @@
 
                             <td class="px-6 py-4 text-center">
                                 <div class="flex flex-col items-center gap-1.5">
-                                    <span class="inline-flex items-center rounded-xl px-3 py-1 text-[11px] font-black uppercase tracking-wider border shadow-sm" 
+                                    <span class="inline-flex items-center rounded-xl px-3 py-1 text-[11px] font-black uppercase tracking-wider border shadow-sm"
                                           :class="getStatusClass(order.status)"
                                           x-text="order.status"></span>
                                     <span class="font-bold text-xs text-slate-500" x-text="order.deliveryDate ? 'Entregar: ' + order.deliveryDate : 'Sin especificar'"></span>
@@ -141,27 +141,27 @@
     {{-- MODAL DE REGISTRO DE ENCARGO --}}
     <div x-show="isModalOpen" class="fixed inset-0 z-[99999] flex items-center justify-center bg-[#1E55AA]/20 backdrop-blur-sm px-4 py-5 transition-opacity">
         <div class="w-full max-w-3xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-white rounded-3xl shadow-[0_20px_60px_rgba(30,85,170,0.15)] border-2 border-slate-100 p-8 animate-fade-in" @click.stop>
-            
+
             <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
                 <div class="p-2.5 bg-[#FFE63C] text-[#1E55AA] rounded-xl shadow-sm">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                 </div>
-                <h3 class="text-2xl font-black text-[#1E55AA]" 
+                <h3 class="text-2xl font-black text-[#1E55AA]"
                     x-text="modalMode === 'add' ? 'Registrar Encargo' : (modalMode === 'edit' ? 'Editar Encargo' : 'Detalles del Encargo')"></h3>
-                
+
                 <span class="ml-auto bg-[#F4F8FC] px-4 py-1.5 rounded-lg text-[#1E55AA] font-black tracking-widest border border-[#1E55AA]/10" x-text="currentOrder.ticket"></span>
             </div>
-            
+
             <form @submit.prevent="saveOrder" class="space-y-6">
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div>
                         <label class="mb-2 block text-sm font-black text-[#1E55AA]">Nombre del Cliente</label>
-                        <input type="text" x-model="currentOrder.name" :disabled="modalMode === 'view'" required 
+                        <input type="text" x-model="currentOrder.name" :disabled="modalMode === 'view'" required
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all">
                     </div>
                     <div>
                         <label class="mb-2 block text-sm font-black text-[#1E55AA]">Teléfono</label>
-                        <input type="text" x-model="currentOrder.phone" :disabled="modalMode === 'view'" placeholder="Opcional" 
+                        <input type="text" x-model="currentOrder.phone" :disabled="modalMode === 'view'" placeholder="Opcional"
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all">
                     </div>
                 </div>
@@ -169,7 +169,7 @@
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div>
                         <label class="mb-2 block text-sm font-black text-[#1E55AA]">Tipo de Servicio</label>
-                        <select x-model="currentOrder.service" :disabled="modalMode === 'view'" 
+                        <select x-model="currentOrder.service" :disabled="modalMode === 'view'"
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all appearance-none cursor-pointer">
                             <option value="Lavado por Kilo">Lavado por Kilo</option>
                             <option value="Planchado">Planchado</option>
@@ -180,7 +180,7 @@
                     </div>
                     <div>
                         <label class="mb-2 block text-sm font-black text-[#1E55AA]">Detalles (Kilos / Piezas / Notas)</label>
-                        <input type="text" x-model="currentOrder.details" :disabled="modalMode === 'view'" placeholder="" 
+                        <input type="text" x-model="currentOrder.details" :disabled="modalMode === 'view'" placeholder=""
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all">
                     </div>
                 </div>
@@ -193,12 +193,12 @@
                     </div>
                     <div>
                         <label class="mb-2 block text-sm font-black text-[#1E55AA]">Adelanto ($)</label>
-                        <input type="number" step="0.5" min="0" x-model.number="currentOrder.advance" :disabled="modalMode === 'view'" 
+                        <input type="number" step="0.5" min="0" x-model.number="currentOrder.advance" :disabled="modalMode === 'view'"
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-black text-emerald-500 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 disabled:opacity-60 transition-all">
                     </div>
                     <div>
                         <label class="mb-2 block text-sm font-black text-[#1E55AA]">Estado del Lavado</label>
-                        <select x-model="currentOrder.status" :disabled="modalMode === 'view'" 
+                        <select x-model="currentOrder.status" :disabled="modalMode === 'view'"
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-3 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all appearance-none cursor-pointer">
                             <option value="Recibido">Recibido</option>
                             <option value="En Proceso">En Proceso</option>
@@ -225,7 +225,7 @@
                     <button type="button" @click="closeModal" class="rounded-2xl bg-[#F4F8FC] px-8 py-3.5 font-black text-[#1E55AA]/60 hover:bg-slate-200 hover:text-[#1E55AA] transition-all">
                         <span x-text="modalMode === 'view' ? 'Cerrar' : 'Cancelar'"></span>
                     </button>
-                    <button x-show="modalMode !== 'view'" type="submit" class="rounded-2xl bg-[#1E55AA] px-10 py-3.5 font-black text-white shadow-[0_8px_20px_rgba(30,85,170,0.2)] hover:bg-[#153e7d] hover:-translate-y-0.5 transition-all" 
+                    <button x-show="modalMode !== 'view'" type="submit" class="rounded-2xl bg-[#1E55AA] px-10 py-3.5 font-black text-white shadow-[0_8px_20px_rgba(30,85,170,0.2)] hover:bg-[#153e7d] hover:-translate-y-0.5 transition-all"
                         x-text="modalMode === 'add' ? 'Guardar Encargo' : 'Actualizar'"></button>
                 </div>
             </form>
@@ -255,7 +255,7 @@
             get filteredOrders() {
                 if (this.searchQuery === '') return this.orders;
                 const q = this.searchQuery.toLowerCase();
-                return this.orders.filter(o => 
+                return this.orders.filter(o =>
                     (o.name && o.name.toLowerCase().includes(q)) ||
                     (o.phone && o.phone.toLowerCase().includes(q)) ||
                     (o.ticket && o.ticket.toLowerCase().includes(q))
@@ -272,8 +272,8 @@
                 }
             },
 
-            formatMoney(amount) { 
-                return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount); 
+            formatMoney(amount) {
+                return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
             },
 
             generateTicket() {
@@ -287,19 +287,19 @@
                 } else {
                     let today = new Date();
                     let formattedToday = today.toISOString().split('T')[0];
-                    
-                    this.currentOrder = { 
-                        id: Date.now(), 
+
+                    this.currentOrder = {
+                        id: Date.now(),
                         ticket: this.generateTicket(),
-                        name: '', 
-                        phone: '', 
-                        service: 'Lavado por Kilo', 
-                        details: '', 
-                        total: 0, 
-                        advance: 0, 
-                        status: 'Recibido', 
+                        name: '',
+                        phone: '',
+                        service: 'Lavado por Kilo',
+                        details: '',
+                        total: 0,
+                        advance: 0,
+                        status: 'Recibido',
                         arrivalDate: formattedToday,
-                        deliveryDate: '' 
+                        deliveryDate: ''
                     };
                 }
                 this.isModalOpen = true;
