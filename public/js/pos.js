@@ -2,6 +2,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
     const adaptarCatalogo = (data, category) => {
         return (data || []).map((item) => ({
             id: item.id,
+            clave_prodserv: item.clave_prodserv,
             name: item.name,
             price: parseFloat(item.price),
             category: category,
@@ -71,6 +72,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                 mode: "edit",
                 category: category,
                 id: item.id,
+                clave_prodserv: item.clave_prodserv || null,
                 name: item.name,
                 price: item.price,
                 description: item.description || null,
@@ -86,6 +88,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                 mode: "delete",
                 category: category,
                 id: item.id,
+                clave_prodserv: item.clave_prodserv || null,
                 name: item.name,
                 price: item.price,
                 description: item.description || null,
@@ -163,8 +166,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                     const data = await response.json();
 
                     targetList.push({
-                        id: data.item.id,
-                        name: data.item.name,
+                        ...data.item,
                         price: parseFloat(data.item.price),
                         category: this.itemModal.category,
                     });

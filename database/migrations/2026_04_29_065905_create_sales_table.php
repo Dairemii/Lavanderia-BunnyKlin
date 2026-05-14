@@ -12,7 +12,7 @@ return new class () extends Migration {
     {
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
-
+            $table->string('reference', 20)->unique();
             $table->foreignId('client_id')
                 ->nullable()
                 ->constrained('clients')
@@ -21,7 +21,7 @@ return new class () extends Migration {
             $table->string('payment_method', 30);
             $table->string('payment_form', 5)->nullable();
             $table->string('facturapi_id')->nullable();
-            $table->date('billed_at');
+            $table->date('billed_at')->nullable();
             $table->string('status', 20)->default('pagado');
 
             $table->timestamps();
