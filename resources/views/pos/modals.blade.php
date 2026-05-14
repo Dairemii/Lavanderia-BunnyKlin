@@ -14,6 +14,10 @@
                         <input type="text" x-model="itemModal.name" required class="w-full rounded-xl border-2 border-slate-100 bg-white py-3 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
                     </div>
                     <div>
+                        <label class="block text-sm font-black text-[#1E55AA] mb-1">Clave SAT</label>
+                        <input type="text" x-model="itemModal.clave_prodserv" placeholder="80101500" maxlength="8" class="w-full rounded-xl border-2 border-slate-100 bg-white py-3 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] transition-all">
+                    </div>
+                    <div>
                         <label class="block text-sm font-black text-[#1E55AA] mb-1">Precio ($)</label>
                         <input type="number" x-model="itemModal.price" required class="w-full rounded-xl border-2 border-slate-100 bg-white py-3 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
                     </div>
@@ -31,8 +35,27 @@
                             <input type="number" x-model="itemModal.stock" placeholder="0" class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors">
                         </div>
                         <div>
-                            <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Unidad</label>
-                            <input type="text" x-model="itemModal.unit" placeholder="Ej. Lts, Pzas" class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors">
+                            <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Unidad de Medida</label>
+                            <select x-model="itemModal.unit" class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors">
+                                <!-- Las más comunes -->
+                                <option value="H87" selected>H87 - Pieza</option>
+                                <option value="E48">E48 - Unidad de servicio</option>
+                                <option value="ACT">ACT - Actividad</option>
+                                <option value="C62">C62 - Uno (Sin unidad específica)</option>
+                                
+                                <!-- Peso y Volumen -->
+                                <option value="KGM">KGM - Kilogramo</option>
+                                <option value="GRM">GRM - Gramo</option>
+                                <option value="LTR">LTR - Litro</option>
+                                <option value="MLT">MLT - Mililitro</option>                          
+                                
+                                <!-- Otras comunes -->
+                                <option value="SET">SET - Conjunto / Juego</option>
+                                <option value="XKI">XKI - Kit (Conjunto de Piezas)</option>
+                                <option value="DPC">DPC - Docena de Piezas</option>
+                                <option value="XBX">XBX - Caja</option>
+                                <option value="TNE">TNE - Tonelada métrica</option>
+                            </select>
                         </div>
                     </div>
 

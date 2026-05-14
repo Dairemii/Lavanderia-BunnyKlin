@@ -23,6 +23,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             category: "",
             id: null,
             name: "",
+            clave_prodserv: "",
             price: "",
             description: "",
             stock: 0,
@@ -107,6 +108,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             const payload = {
                 id: this.itemModal.id,
                 category: this.itemModal.category,
+                clave_prodserv: this.itemModal.clave_prodserv,
                 name: this.itemModal.name,
                 price: priceVal,
                 description: this.itemModal.description,

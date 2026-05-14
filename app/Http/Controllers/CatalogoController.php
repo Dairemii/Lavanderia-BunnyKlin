@@ -17,6 +17,7 @@ class CatalogoController extends Controller
             'category' => 'required|string',
             'name'   => 'required|string|max:100',
             'price'   => 'required|numeric|min:0',
+            'clave_prodserv' => 'nullable|string|max:8', // Validación para clave SAT
         ]);
 
         try {
@@ -39,6 +40,7 @@ class CatalogoController extends Controller
             'category' => 'required|string',
             'name'     => 'required|string|max:100',
             'price'    => 'required|numeric|min:0',
+            'clave_prodserv' => 'nullable|string|max:8', // Validación para clave SAT
         ]);
 
         try {
