@@ -105,23 +105,61 @@
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1">Régimen Fiscal</label>
                             <select name="tax_system" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white">
-                                <option value="601" selected>601 - General de Ley Personas Morales</option>
+                                <option value="601">601 - General de Ley Personas Morales</option>
                                 <option value="603">603 - Personas Morales con Fines no Lucrativos</option>
-                                <option value="605">605 - Sueldos y Salarios</option>
+                                <option value="605">605 - Sueldos y Salarios e Ingresos Asimilados a Salarios</option>
                                 <option value="606">606 - Arrendamiento</option>
-                                <option value="611">611 - Ingresos por Dividendos</option>
-                                <option value="612">612 - Personas Físicas con Actividades Empresariales</option>
-                                <option value="616">616 - Sin obligaciones fiscales (Público General)</option>
-                                <option value="626">626 - RESICO</option>
+                                <option value="607">607 - Régimen de Enajenación o Adquisición de Bienes</option>
+                                <option value="608">608 - Demás ingresos</option>
+                                <option value="610">610 - Residentes en el Extranjero sin Establecimiento Permanente en México</option>
+                                <option value="611">611 - Ingresos por Dividendos (socios y accionistas)</option>
+                                <option value="612">612 - Personas Físicas con Actividades Empresariales y Profesionales</option>
+                                <option value="614">614 - Ingresos por Intereses</option>
+                                <option value="615">615 - Régimen de los ingresos por obtención de premios</option>
+                                <option value="616">616 - Sin obligaciones fiscales</option>
+                                <option value="620">620 - Sociedades Cooperativas de Producción que optan por diferir sus ingresos</option>
+                                <option value="621">621 - Incorporación Fiscal (RIF)</option>
+                                <option value="622">622 - Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras (AGAPES)</option>
+                                <option value="623">623 - Opcional para Grupos de Sociedades</option>
+                                <option value="624">624 - Coordinados</option>
+                                <option value="625">625 - Actividades Empresariales con ingresos a través de Plataformas Tecnológicas</option>
+                                <option value="626">626 - Régimen Simplificado de Confianza (RESICO)</option>
+                                <option value="628">628 - Hidrocarburos</option>
+                                <option value="629">629 - De los Regímenes Fiscales Preferentes y de las Empresas Multinacionales</option>
+                                <option value="630">630 - Enajenación de acciones en bolsa de valores</option>
                             </select>
                         </div>
 
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1">Uso de CFDI</label>
                             <select name="use_cfdi" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white">
-                                <option value="G03" selected>G03 - Gastos en general</option>
+                                <option value="G01" selected>G01 - Adquisición de mercancías</option>
+                                <option value="G02">G02 - Devoluciones, descuentos o bonificaciones</option>
+                                <option value="G03">G03 - Gastos en general</option>
+                                
+                                <option value="I01">I01 - Construcciones</option>
+                                <option value="I02">I02 - Mobiliario y equipo de oficina por inversiones</option>
+                                <option value="I03">I03 - Equipo de transporte</option>
+                                <option value="I04">I04 - Equipo de cómputo y accesorios</option>
+                                <option value="I05">I05 - Dados, troqueles, moldes, matrices y herramental</option>
+                                <option value="I06">I06 - Comunicaciones telefónicas</option>
+                                <option value="I07">I07 - Comunicaciones satelitales</option>
+                                <option value="I08">I08 - Otra maquinaria y equipo</option>
+                                
+                                <option value="D01">D01 - Honorarios médicos, dentales y gastos hospitalarios</option>
+                                <option value="D02">D02 - Gastos médicos por incapacidad o discapacidad</option>
+                                <option value="D03">D03 - Gastos funerales</option>
+                                <option value="D04">D04 - Donativos</option>
+                                <option value="D05">D05 - Intereses reales efectivamente pagados por créditos hipotecarios (casa habitación)</option>
+                                <option value="D06">D06 - Aportaciones voluntarias al SAR</option>
+                                <option value="D07">D07 - Primas por seguros de gastos médicos</option>
+                                <option value="D08">D08 - Gastos de transportación escolar obligatoria</option>
+                                <option value="D09">D09 - Depósitos en cuentas especiales para el ahorro, primas que tengan como base planes de pensiones</option>
+                                <option value="D10">D10 - Pagos por servicios educativos (colegiaturas)</option>
+                                
                                 <option value="S01">S01 - Sin efectos fiscales</option>
                                 <option value="CP01">CP01 - Pagos</option>
+                                <option value="CN01">CN01 - Nómina</option>
                             </select>
                         </div>
 
@@ -138,11 +176,27 @@
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">Forma de Pago</label>
                                 <select name="payment_form" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white">
-                                    <option value="01">01 - Efectivo</option>
-                                    <option value="03">03 - Transferencia Electrónica de Fondos</option>
-                                    <option value="04">04 - Tarjeta de Crédito</option>
-                                    <option value="08">08 - Vales de Despensa</option>
-                                    <option value="28">28 - Tarjeta de Débito</option>
+                                    <option value="01" selected>01 - Efectivo</option>
+                                    <option value="02">02 - Cheque nominativo</option>
+                                    <option value="03">03 - Transferencia electrónica de fondos</option>
+                                    <option value="04">04 - Tarjeta de crédito</option>
+                                    <option value="05">05 - Monedero electrónico</option>
+                                    <option value="06">06 - Dinero electrónico</option>
+                                    <option value="08">08 - Vales de despensa</option>
+                                    <option value="12">12 - Dación en pago</option>
+                                    <option value="13">13 - Pago por subrogación</option>
+                                    <option value="14">14 - Pago por consignación</option>
+                                    <option value="15">15 - Condonación</option>
+                                    <option value="17">17 - Compensación</option>
+                                    <option value="23">23 - Novación</option>
+                                    <option value="24">24 - Confusión</option>
+                                    <option value="25">25 - Remisión de deuda</option>
+                                    <option value="26">26 - Prescripción o caducidad</option>
+                                    <option value="27">27 - A satisfacción del acreedor</option>
+                                    <option value="28">28 - Tarjeta de débito</option>
+                                    <option value="29">29 - Tarjeta de servicios</option>
+                                    <option value="30">30 - Aplicación de anticipos</option>
+                                    <option value="31">31 - Intermediarios pagos</option>
                                     <option value="99">99 - Por definir</option>
                                 </select>
                             </div>

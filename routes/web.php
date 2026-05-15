@@ -103,6 +103,9 @@ Route::get('/factura/crear', [FacturaController::class, 'create'])->name('factur
 // Procesar el formulario
 Route::post('/factura/crear', [FacturaController::class, 'facturar'])->name('venta.facturar');
 
+// Descargar archivos de la factura
+Route::get('/factura/archivo/{id}/{tipo?}', [FacturaController::class, 'descargarArchivo'])->name('factura.archivo');
+
 // =========================================================
 // RUTAS DE LA PLANTILLA Y MERCADO PAGO
 // =========================================================

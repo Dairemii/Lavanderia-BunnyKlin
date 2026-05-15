@@ -9,8 +9,10 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             stock: item.stock || null,
             unit: item.unit || null,
             duration_months: item.duration_months || null,
+            clave_prodserv: item.clave_prodserv || null,
         }));
     };
+    
 
     return {
         activeMode: "sale",
