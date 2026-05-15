@@ -45,5 +45,12 @@ class Sale extends Model
         });
     }
 
+    public function detalles()
+    {
+        // Nota: Asegúrate de que el modelo de los items se llame 'SaleItem' 
+        // o cámbialo por el nombre correcto de tu modelo de detalles.
+        return $this->hasMany(SaleItem::class, 'sale_id');
+    }
+
     // EL MÉTODO CREATE VACÍO FUE ELIMINADO 🚀
 }
