@@ -1,6 +1,7 @@
-function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
+function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
     const adaptarCatalogo = (data, category) => {
-        return data.map((item) => ({
+        if (!data || !Array.isArray(data)) return [];
+        return data.map(item => ({
             id: item.id,
             name: item.name,
             price: parseFloat(item.price),
@@ -9,6 +10,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
             stock: item.stock || null,
             unit: item.unit || null,
             duration_months: item.duration_months || null,
+            clave_prodserv: item.clave_prodserv || null, // <-- Lo que agregó tu compañero para que cargue la clave SAT
         }));
     };
 
@@ -16,19 +18,28 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
         activeMode: "sale",
         showPreConfirmacion: false,
         showConfirmacion: false,
-        
-        // Estados para la Terminal
+        ultimaVenta: null,
+        itemModal: {
+            open: false, mode: "add", category: "",
+            id: null, name: "", clave_prodserv: "", price: "",
+            description: "", stock: 0, unit: "", duration_months: 1,
+        },
         esperandoTerminal: false,
         showErrorModal: false,
         errorPago: "",
-
-        ultimaVenta: null,
-        itemModal: { open: false, mode: "add", category: "", id: null, name: "", price: "", description: "", stock: 0, unit: "", duration_months: 1 },
+        debugStatus: "",
+        // Parche para error Alpine
+        tiempoFormateado: "",
         clienteForm: { nombre: "", telefono: "", inicio: "", fin: "" },
+        
         services: adaptarCatalogo(servicesDb, "services"),
         supplies: adaptarCatalogo(suppliesDb, "supplies"),
         subscriptions: adaptarCatalogo(subscriptionsDb, "subscriptions"),
+        extras: adaptarCatalogo(extrasDb, "extras"),
         cart: [],
+        
+        intentId: null,
+        pollingActive: false,
 
         formatMoney(amount) {
             return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(amount);
@@ -49,9 +60,9 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
         },
 
         addToCart(item, category) {
-            let found = this.cart.find((i) => i.id === item.id && i.category === category);
+            let found = this.cart.find(i => i.id === item.id && i.category === category);
             if (found) found.quantity++;
-            else this.cart.push({ ...item, category, quantity: 1 });
+            else this.cart.push({ ...item, category, quantity: 1, cart_id: category + "-" + item.id });
         },
 
         updateQty(index, amount) {
@@ -62,9 +73,169 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
         removeItem(index) { this.cart.splice(index, 1); },
         clearCart() { this.cart = []; },
 
-        // ==========================================
-        // LÓGICA DE COBRO
-        // ==========================================
+        // ========== MODALES DE ÍTEMS ==========
+        openAddModal(category) {
+            this.itemModal = {
+                open: true, mode: "add", category: category,
+                id: null, name: "", clave_prodserv: "", price: "",
+                description: "", stock: 0, unit: "", duration_months: 1
+            };
+        },
+        openEditModal(item, category) {
+            this.itemModal = {
+                open: true, mode: "edit", category: category,
+                id: item.id, name: item.name, clave_prodserv: item.clave_prodserv || "",
+                price: item.price, description: item.description || null,
+                stock: item.stock || null, unit: item.unit || null,
+                duration_months: item.duration_months || null
+            };
+        },
+        openDeleteModal(item, category) {
+            this.itemModal = {
+                open: true, mode: "delete", category: category,
+                id: item.id, name: item.name, price: item.price,
+                description: item.description || null,
+                stock: item.stock || null, unit: item.unit || null,
+                duration_months: item.duration_months || null
+            };
+        },
+        closeModal() { this.itemModal.open = false; },
+
+        async saveItem() {
+            if (!this.itemModal.name.trim() || this.itemModal.price === "") return;
+            let priceVal = parseFloat(this.itemModal.price) || 0;
+            const payload = {
+                id: this.itemModal.id,
+                category: this.itemModal.category,
+                clave_prodserv: this.itemModal.clave_prodserv || "",
+                name: this.itemModal.name,
+                price: priceVal,
+                description: this.itemModal.description,
+                stock: this.itemModal.stock,
+                unit: this.itemModal.unit,
+                duration_months: this.itemModal.duration_months,
+            };
+            
+            let targetList = this.itemModal.category === "services" ? this.services :
+                             this.itemModal.category === "supplies" ? this.supplies :
+                             this.itemModal.category === "subscriptions" ? this.subscriptions : 
+                             this.itemModal.category === "extras" ? this.extras : null;
+                             
+            if (!targetList) return;
+            try {
+                const headers = {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+                };
+                if (this.itemModal.mode === "add") {
+                    const res = await fetch("/catalogo/guardar", { method: "POST", headers, body: JSON.stringify(payload) });
+                    if (!res.ok) throw new Error((await res.json().catch(()=>{})).message || "Error al guardar");
+                    const data = await res.json();
+                    targetList.push({ id: data.item.id, name: data.item.name, price: parseFloat(data.item.price), category: this.itemModal.category, clave_prodserv: data.item.clave_prodserv });
+                } else {
+                    const res = await fetch("/catalogo/actualizar", { method: "PUT", headers, body: JSON.stringify(payload) });
+                    if (!res.ok) throw new Error("Error al actualizar");
+                    const data = await res.json();
+                    let idx = targetList.findIndex(i => i.id === this.itemModal.id);
+                    if (idx !== -1) {
+                        targetList[idx].name = data.item.name;
+                        targetList[idx].price = parseFloat(data.item.price);
+                        targetList[idx].description = data.item.description || null;
+                        targetList[idx].stock = data.item.stock || null;
+                        targetList[idx].unit = data.item.unit || null;
+                        targetList[idx].duration_months = data.item.duration_months || null;
+                        targetList[idx].clave_prodserv = data.item.clave_prodserv || null;
+                        let cartIdx = this.cart.findIndex(c => c.id === this.itemModal.id && c.category === this.itemModal.category);
+                        if (cartIdx !== -1) {
+                            this.cart[cartIdx].name = data.item.name;
+                            this.cart[cartIdx].price = parseFloat(data.item.price);
+                        }
+                    }
+                }
+                this.closeModal();
+            } catch (e) {
+                console.error(e);
+                alert("Hubo un problema: " + e.message);
+            }
+        },
+
+        async deleteItem() {
+            const payload = { id: this.itemModal.id, category: this.itemModal.category };
+            try {
+                const res = await fetch("/catalogo/eliminar", {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+                    },
+                    body: JSON.stringify(payload),
+                });
+                if (!res.ok) throw new Error("Error al eliminar");
+                
+                let targetList = this.itemModal.category === "services" ? this.services :
+                                 this.itemModal.category === "supplies" ? this.supplies :
+                                 this.itemModal.category === "subscriptions" ? this.subscriptions : 
+                                 this.itemModal.category === "extras" ? this.extras : null;
+                                 
+                if (targetList) {
+                    let idx = targetList.findIndex(i => i.id === this.itemModal.id);
+                    if (idx !== -1) {
+                        targetList.splice(idx, 1);
+                        this.cart = this.cart.filter(c => c.id !== this.itemModal.id);
+                    }
+                }
+                this.closeModal();
+            } catch (e) {
+                console.error(e);
+                alert("Error al eliminar: " + e.message);
+            }
+        },
+
+        // ========== FLUJO DE COBRO ==========
+        checkout() { 
+            if (this.cart.length) {
+                const today = new Date();
+                const nextMonth = new Date();
+                nextMonth.setDate(today.getDate() + 30);
+
+                this.clienteForm = {
+                    nombre: "",
+                    telefono: "",
+                    inicio: today.toISOString().split("T")[0],
+                    fin: nextMonth.toISOString().split("T")[0],
+                };
+                this.showPreConfirmacion = true; 
+            }
+        },
+        cancelarCheckout() { this.showPreConfirmacion = false; },
+        cerrarConfirmacion() { this.showConfirmacion = false; },
+
+        mostrarError(mensaje) {
+            if (typeof mensaje !== 'string') mensaje = String(mensaje);
+            if (mensaje.startsWith('<') || mensaje.includes('Unexpected token')) {
+                mensaje = 'Error inesperado. Verifique la conexión.';
+            }
+            this.errorPago = mensaje;
+            this.showErrorModal = true;
+            console.error("Error de pago:", mensaje);
+        },
+
+        cerrarErrorModal() {
+            this.showErrorModal = false;
+            this.showPreConfirmacion = true;
+        },
+
+        cancelarTerminal() {
+            this.pollingActive = false;
+            this.esperandoTerminal = false;
+            this.debugStatus = "";
+            this.mostrarError("Operación cancelada por el usuario.");
+        },
+
         async confirmarCheckout(metodo = "Terminal") {
             if (metodo === "Terminal") {
                 if (this.total < 5) {
@@ -72,140 +243,183 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb) {
                     return;
                 }
 
+                this.showPreConfirmacion = false;
+                this.esperandoTerminal = true;
+                this.pollingActive = true;
+                this.debugStatus = "Conectando...";
+
                 try {
-                    // Ocultar pre-confirmación y mostrar pantalla de carga
-                    this.showPreConfirmacion = false;
-                    this.esperandoTerminal = true;
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+                    if (!token) throw new Error("Token CSRF no encontrado");
 
                     const response = await fetch("/terminal/cobrar", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
                             "Accept": "application/json",
-                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+                            "X-Requested-With": "XMLHttpRequest",
+                            "X-CSRF-TOKEN": token
                         },
                         body: JSON.stringify({ total: this.total })
                     });
 
-                    if (!response.headers.get("content-type")?.includes("application/json")) {
-                        throw new Error("Error interno del servidor al iniciar el cobro.");
-                    }
-
-                    const data = await response.json();
-                    if (!data.success) throw new Error(data.error || data.mensaje || "Error al conectar con la terminal.");
-
-                    const intentId = data.payment_intent_id;
-                    let pagoFinalizado = false;
-                    let intentosFallidos = 0;
-
-                    // BUCLE DE ESPERA ACTIVA MEJORADO
-                    while (!pagoFinalizado) {
-                        await new Promise(resolve => setTimeout(resolve, 3000));
-
-                        try {
-                            const statusRes = await fetch(`/terminal/estado/${intentId}`);
-                            
-                            // Tolerancia a fallos del servidor/red
-                            if (!statusRes.headers.get("content-type")?.includes("application/json")) {
-                                intentosFallidos++;
-                                if(intentosFallidos > 5) throw new Error("Se perdió la conexión prolongada con el servidor.");
-                                continue; 
-                            }
-
-                            const statusData = await statusRes.json();
-                            intentosFallidos = 0; // Reiniciamos contador si hubo éxito de conexión
-
-                            if (statusData.status === 'FINISHED') {
-                                pagoFinalizado = true;
-                                this.esperandoTerminal = false;
-                                this.finalizarVentaLocal("Tarjeta");
-                            } 
-                            else if (statusData.status === 'CANCELED' || statusData.status === 'ABANDONED' || statusData.status === 'ERROR') {
-                                pagoFinalizado = true; 
-                                throw new Error("El pago fue cancelado o rechazado directamente en la terminal.");
-                            }
-                            // Si es OPEN, PROCESSING, UNKNOWN o RETRY, sigue el bucle
-
-                        } catch (pollError) {
-                            if (pollError.message.includes("cancelado") || pollError.message.includes("prolongada")) {
-                                throw pollError;
-                            }
-                            intentosFallidos++;
-                            if (intentosFallidos > 5) throw new Error("Fallo de red constante. Verifica tu conexión a internet.");
+                    if (!response.ok) {
+                        const ct = response.headers.get('content-type');
+                        if (ct && ct.includes('application/json')) {
+                            const err = await response.json();
+                            throw new Error(err.error || err.message || "Error del servidor");
+                        } else {
+                            throw new Error("El servidor no respondió correctamente.");
                         }
                     }
 
+                    const data = await response.json();
+                    if (!data.success) throw new Error(data.error || "No se pudo iniciar el cobro");
+
+                    this.intentId = data.payment_intent_id;
+                    let pagoFinalizado = false;
+                    let intentos = 0;
+                    const MAX_INTENTOS = 60;
+
+                    while (!pagoFinalizado && this.pollingActive && intentos < MAX_INTENTOS) {
+                        intentos++;
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+
+                        let statusData = null;
+                        try {
+                            const statusRes = await fetch(`/terminal/estado/${this.intentId}`);
+                            if (!statusRes.ok) {
+                                this.debugStatus = `Error HTTP ${statusRes.status} (intento ${intentos})`;
+                                console.warn(this.debugStatus);
+                                continue;
+                            }
+                            const ct = statusRes.headers.get('content-type');
+                            if (!ct || !ct.includes('application/json')) {
+                                this.debugStatus = `Respuesta no JSON (intento ${intentos})`;
+                                console.warn(this.debugStatus);
+                                continue;
+                            }
+                            statusData = await statusRes.json();
+                            console.log(`Intento ${intentos}:`, statusData);
+                        } catch (e) {
+                            this.debugStatus = `Error de red (intento ${intentos})`;
+                            console.warn(this.debugStatus, e);
+                            continue;
+                        }
+
+                        if (!statusData.success) {
+                            if (statusData.status === 'RETRY') {
+                                this.debugStatus = `Reintentando (intento ${intentos})`;
+                                continue;
+                            }
+                            pagoFinalizado = true;
+                            throw new Error(statusData.error || 'Error al consultar el estado.');
+                        }
+
+                        const status = (statusData.status || '').toUpperCase();
+                        const paymentStatus = (statusData.payment_status || '').toUpperCase();
+                        this.debugStatus = `Estado: ${status || '?'} / Pago: ${paymentStatus || '?'} (intento ${intentos})`;
+
+                        // Estados de espera
+                        if (['OPEN', 'ON_TERMINAL', 'PROCESSING', 'READY'].includes(status)) {
+                            continue;
+                        }
+
+                        // Cualquier otro estado es final
+                        pagoFinalizado = true;
+
+                        if (status === 'FINISHED' && paymentStatus === 'APPROVED') {
+                            this.esperandoTerminal = false;
+                            this.pollingActive = false;
+                            this.debugStatus = "";
+                            await this.finalizarVentaLocal("Tarjeta");
+                        } else {
+                            let msj = 'El pago no fue aprobado.';
+                            if (status === 'CANCELED' || status === 'ABANDONED') msj = 'Pago cancelado en la terminal.';
+                            else if (status === 'FINISHED' && paymentStatus === 'REJECTED') msj = 'Tarjeta rechazada. Intente otro método.';
+                            else if (status === 'ERROR') msj = 'Error en la terminal. Intente nuevamente.';
+                            throw new Error(msj);
+                        }
+                    }
+
+                    if (!pagoFinalizado) {
+                        if (!this.pollingActive) return;
+                        throw new Error("Tiempo de espera agotado.");
+                    }
                 } catch (error) {
-                    console.error("Detalle del error:", error);
-                    this.esperandoTerminal = false; 
-                    this.mostrarError(error.message); 
+                    console.error("Error en flujo terminal:", error);
+                    this.esperandoTerminal = false;
+                    this.pollingActive = false;
+                    this.debugStatus = "";
+                    this.mostrarError(error.message);
                 }
                 return;
             }
-            
-            // Cobro en Efectivo
+
+            // Efectivo
             this.finalizarVentaLocal("Efectivo");
         },
 
-        finalizarVentaLocal(metodo) {
-            let historial = JSON.parse(localStorage.getItem("historial_ventas")) || [];
-            let folio = "BK-" + (historial.length + 1).toString().padStart(4, "0");
+        async finalizarVentaLocal(metodo) {
+            try {
+                const payload = {
+                    total: parseFloat(this.total).toFixed(2),
+                    metodo_pago: metodo,
+                    detalles: this.cart,
+                    cliente: this.clienteForm.nombre.trim() || "Público en General"
+                };
+                const response = await fetch("/ventas/checkout", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+                    },
+                    body: JSON.stringify(payload),
+                });
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.message || "Error al registrar la venta");
+                }
+                const data = await response.json();
+                if (this.clienteForm.nombre.trim() !== "") this.registrarClienteLocal();
 
-            const nuevaVenta = {
-                id: Date.now(),
-                folio: folio,
-                fecha: new Date().toLocaleString("es-MX"),
-                total: this.total,
-                metodo: metodo,
-                detalles: JSON.parse(JSON.stringify(this.cart)),
-                cliente: this.clienteForm.nombre || "Público en General",
-            };
-
-            historial.unshift(nuevaVenta);
-            localStorage.setItem("historial_ventas", JSON.stringify(historial));
-            if (this.clienteForm.nombre.trim() !== "") this.registrarClienteLocal();
-
-            this.ultimaVenta = nuevaVenta;
-            this.showPreConfirmacion = false;
-            this.showConfirmacion = true;
-            this.clearCart();
+                this.ultimaVenta = {
+                    folio: data.venta?.folio || data.venta?.reference || "BK-" + Date.now().toString().slice(-4),
+                    fecha: new Date().toLocaleString("es-MX"),
+                    total: this.total,
+                };
+                this.showPreConfirmacion = false;
+                this.showConfirmacion = true;
+                this.clearCart();
+            } catch (error) {
+                console.error("Error al guardar en BD:", error);
+                this.esperandoTerminal = false;
+                this.mostrarError("Error: " + error.message);
+            }
         },
 
         registrarClienteLocal() {
-            let sub = this.cart.find(i => i.category === "subscriptions");
+            let subscripcionComprada = this.cart.find(item => item.category === "subscriptions");
+            let planName = subscripcionComprada ? subscripcionComprada.name : "Ninguna";
+            
+            let prendas = this.cart
+                .filter(i => i.category === "services")
+                .map(i => i.quantity + "x " + i.name)
+                .join(", ");
+
             let clientes = JSON.parse(localStorage.getItem("lavanderia_clientes_final_v2")) || [];
             clientes.unshift({
                 id: Date.now(),
                 name: this.clienteForm.nombre,
                 phone: this.clienteForm.telefono,
+                items: prendas || "Solo pago de plan",
                 status: "Pendiente",
-                subscription: sub ? sub.name : "Ninguna",
+                subscription: planName,
+                subscriptionEndDate: planName !== "Ninguna" ? this.clienteForm.fin : "",
             });
             localStorage.setItem("lavanderia_clientes_final_v2", JSON.stringify(clientes));
-        },
-
-        // --- MÉTODOS UI ---
-        openAddModal(category) { this.itemModal = { open: true, mode: "add", category, id: null, name: "", price: "", description: "", stock: 0, unit: "", duration_months: 1 }; },
-        openEditModal(item, category) { this.itemModal = { open: true, mode: "edit", category, id: item.id, name: item.name, price: item.price, description: item.description, stock: item.stock, unit: item.unit, duration_months: item.duration_months }; },
-        openDeleteModal(item, category) { this.itemModal = { open: true, mode: "delete", category, ...item }; },
-        closeModal() { this.itemModal.open = false; },
-        
-        checkout() { 
-            if (this.cart.length) this.showPreConfirmacion = true; 
-        },
-        cancelarCheckout() { 
-            this.showPreConfirmacion = false; 
-        },
-        cerrarConfirmacion() { 
-            this.showConfirmacion = false; 
-        },
-        mostrarError(mensaje) {
-            this.errorPago = mensaje;
-            this.showErrorModal = true;
-        },
-        cerrarErrorModal() {
-            this.showErrorModal = false;
-            this.showPreConfirmacion = true;
         }
     };
 }
