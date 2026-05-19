@@ -197,7 +197,15 @@
 
                     <div>
                         <label class="block text-sm font-black text-slate-400 uppercase tracking-wider mb-2">Teléfono</label>
-                        <input type="text" x-model="currentClient.phone" :disabled="modalMode === 'view'" placeholder="427 123 4567"
+                        <input type="text" x-model="currentClient.phone" :disabled="modalMode === 'view'"
+                            :placeholder="modalMode === 'add' ? '427 123 4567' : 'No proporcionado'"
+                            class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-black text-slate-400 uppercase tracking-wider mb-2">Correo Electrónico</label>
+                        <input type="email" x-model="currentClient.email" :disabled="modalMode === 'view'"
+                            :placeholder="modalMode === 'add' ? 'correo@ejemplo.com' : 'No proporcionado'"
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all">
                     </div>
 
@@ -238,14 +246,28 @@
 
                         <div class="col-span-1 md:col-span-8">
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Razón Social</label>
-                            <input type="text" x-model="currentClient.razon_social" :disabled="modalMode === 'view'" placeholder="NOMBRE APELLIDO / EMPRESA"
+                            <input type="text" x-model="currentClient.razon_social" :disabled="modalMode === 'view'"
+                                :placeholder="modalMode === 'add' ? 'NOMBRE APELLIDO / EMPRESA' : 'No proporcionado'"
                                 class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] uppercase">
                         </div>
 
                         <div class="col-span-1 md:col-span-4">
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">RFC</label>
-                            <input type="text" x-model="currentClient.rfc" :disabled="modalMode === 'view'" placeholder="XAXX010101000" maxlength="13"
+                            <input type="text" x-model="currentClient.rfc" :disabled="modalMode === 'view'"
+                                :placeholder="modalMode === 'add' ? 'XAXX010101000' : 'No proporcionado'" maxlength="13"
                                 class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] uppercase">
+                        </div>
+
+                        <div class="col-span-1 md:col-span-12">
+                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Régimen Fiscal</label>
+                            <select x-model="currentClient.regimen_fiscal" :disabled="modalMode === 'view'"
+                                class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] appearance-none cursor-pointer">
+                                <option value="">Seleccionar...</option>
+                                <option value="616">616 - Sin obligaciones fiscales</option>
+                                <option value="601">601 - General de Ley PM</option>
+                                <option value="605">605 - Sueldos y Salarios</option>
+                                <option value="626">626 - RESICO</option>
+                            </select>
                         </div>
 
                         {{-- Separador Visual --}}
@@ -253,45 +275,60 @@
                             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-[#F4F8FC] pr-2 -mt-3 absolute">Dirección Fiscal</span>
                         </div>
 
+                        <div class="col-span-1 md:col-span-12 mb-2">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="same_billing_address" x-model="currentClient.same_billing_address" :disabled="modalMode === 'view'"
+                                    class="w-4 h-4 text-[#1E55AA] rounded border-slate-300 focus:ring-[#1E55AA] cursor-pointer">
+                                <label for="same_billing_address" class="text-xs font-black text-[#1E55AA] cursor-pointer select-none">Usar esta dirección como principal / de facturación</label>
+                            </div>
+                        </div>
+
                         <div class="col-span-1 md:col-span-6">
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Calle</label>
-                            <input type="text" x-model="currentClient.calle" :disabled="modalMode === 'view'" placeholder="Ej. Av. Universidad"
+                            <input type="text" x-model="currentClient.calle" :disabled="modalMode === 'view'"
+                                :placeholder="modalMode === 'add' ? 'Ej. Av. Universidad' : 'No proporcionado'"
                                 class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
                         </div>
 
                         <div class="col-span-1 md:col-span-3">
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Nº Ext.</label>
-                            <input type="text" x-model="currentClient.numero_exterior" :disabled="modalMode === 'view'" placeholder="123"
+                            <input type="text" x-model="currentClient.numero_exterior" :disabled="modalMode === 'view'"
+                                :placeholder="modalMode === 'add' ? '123' : 'No proporcionado'"
                                 class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
                         </div>
 
                         <div class="col-span-1 md:col-span-3">
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Nº Int.</label>
-                            <input type="text" x-model="currentClient.numero_interior" :disabled="modalMode === 'view'" placeholder="Apto 4"
+                            <input type="text" x-model="currentClient.numero_interior" :disabled="modalMode === 'view'"
+                                :placeholder="modalMode === 'add' ? 'Apto 4' : 'No proporcionado'"
                                 class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
                         </div>
 
                         <div class="col-span-1 md:col-span-5">
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Colonia</label>
-                            <input type="text" x-model="currentClient.colonia" :disabled="modalMode === 'view'" placeholder="Ej. Centro Histórico"
+                            <input type="text" x-model="currentClient.colonia" :disabled="modalMode === 'view'"
+                                :placeholder="modalMode === 'add' ? 'Ej. Centro Histórico' : 'No proporcionado'"
                                 class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
                         </div>
 
                         <div class="col-span-1 md:col-span-4">
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Ciudad / Municipio</label>
-                            <input type="text" x-model="currentClient.ciudad" :disabled="modalMode === 'view'" placeholder="San Juan del Río"
+                            <input type="text" x-model="currentClient.ciudad" :disabled="modalMode === 'view'"
+                                :placeholder="modalMode === 'add' ? 'San Juan del Río' : 'No proporcionado'"
                                 class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
                         </div>
 
                         <div class="col-span-1 md:col-span-3">
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">C.P.</label>
-                            <input type="text" x-model="currentClient.codigo_postal" :disabled="modalMode === 'view'" placeholder="76800" maxlength="5"
+                            <input type="text" x-model="currentClient.codigo_postal" :disabled="modalMode === 'view'"
+                                :placeholder="modalMode === 'add' ? '76800' : 'No proporcionado'" maxlength="5"
                                 class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
                         </div>
 
                         <div class="col-span-1 md:col-span-12">
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Estado</label>
-                            <input type="text" x-model="currentClient.estado" :disabled="modalMode === 'view'" placeholder="Querétaro"
+                            <input type="text" x-model="currentClient.estado" :disabled="modalMode === 'view'"
+                                :placeholder="modalMode === 'add' ? 'Querétaro' : 'No proporcionado'"
                                 class="w-full rounded-xl border-2 border-slate-200 bg-white py-2.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA]">
                         </div>
 
@@ -308,6 +345,7 @@
                     </button>
                 </div>
             </form>
+
         </div>
     </div>
 

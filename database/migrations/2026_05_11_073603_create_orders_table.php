@@ -21,8 +21,19 @@ return new class () extends Migration {
                 ->nullable()
                 ->constrained('clients')
                 ->nullOnDelete();
-            $table->string('status', 20)->default('pendiente');
+            $table->foreignId('service_id')
+                ->nullable()
+                ->constrained('services')
+                ->nullOnDelete();
+
+            $table->decimal('quantity', 8, 2)->default(0.00);
+
+            $table->string('service_name');
             $table->string('details')->nullable();
+            $table->decimal('total_price', 10, 2);
+            $table->decimal('advance_payment', 10, 2)->default(0.00);
+            $table->string('status', 20)->default('pendiente');
+            $table->dateTime('arrival_date')->useCurrent();
             $table->dateTime('delivery_date')->nullable();
 
             $table->timestamps();

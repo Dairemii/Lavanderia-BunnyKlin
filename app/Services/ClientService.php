@@ -21,6 +21,8 @@ class ClientService
             if (empty($datos['wantsBilling']) || $datos['wantsBilling'] == false) {
                 $datos['rfc']            = null;
                 $datos['razon_social']   = null;
+                $datos['regimen_fiscal'] = null;
+                $datos['same_billing_address'] = false;
                 $datos['codigo_postal']  = null;
                 $datos['calle']           = null;
                 $datos['numero_exterior'] = null;
