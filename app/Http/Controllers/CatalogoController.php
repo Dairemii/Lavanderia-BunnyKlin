@@ -17,6 +17,7 @@ class CatalogoController extends Controller
             'category' => 'required|string',
             'name'   => 'required|string|max:100',
             'price'   => 'required|numeric|min:0',
+            'clave_prodserv' => 'nullable|string|max:8', // Validaci¨®n para clave SAT
         ]);
 
         try {
@@ -39,6 +40,7 @@ class CatalogoController extends Controller
             'category' => 'required|string',
             'name'     => 'required|string|max:100',
             'price'    => 'required|numeric|min:0',
+            'clave_prodserv' => 'nullable|string|max:8', // Validaci¨®n para clave SAT
         ]);
 
         try {
@@ -62,7 +64,7 @@ class CatalogoController extends Controller
         ]);
 
         try {
-            // Llamamos al servicio pasando la categorÃ­a y el ID
+            // Llamamos al servicio pasando la categor¨ªa y el ID
             $this->catalogoService->eliminarElemento($request->category, $request->id);
 
             return response()->json(['success' => true]);

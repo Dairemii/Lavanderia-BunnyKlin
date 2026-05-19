@@ -42,12 +42,22 @@
                                 </tr>
                             </template>
                             <template x-for="venta in ventas" :key="venta.id">
-                                <tr class="border-b border-slate-50 hover:bg-blue-50 transition-colors cursor-pointer" @click="console.log('Venta seleccionada:', venta)">
-                                    <td class="py-4 px-4 font-bold text-[#1E55AA]" x-text="venta.folio"></td>
-                                    <td class="py-4 px-4 text-sm text-slate-500" x-text="venta.fecha"></td>
+                                <tr class="border-b border-slate-50 hover:bg-blue-50 transition-colors">
+                                    <!-- 'reference' es el folio en tu tabla sales según la imagen común de estos sistemas -->
+                                    <td class="py-4 px-4 font-bold text-[#1E55AA]" x-text="venta.reference || venta.id"></td>
+                                    
+                                    <!-- Formatear la fecha que viene de la base de datos -->
+                                    <td class="py-4 px-4 text-sm text-slate-500" x-text="new Date(venta.created_at).toLocaleString('es-MX')"></td>
+                                    
                                     <td class="py-4 px-4 font-black text-right text-emerald-600" x-text="formatMoney(venta.total)"></td>
+                                    
                                     <td class="py-4 px-4 text-center">
-                                        <button class="text-blue-600 hover:underline font-bold text-xs" @click="seleccionarVenta(venta)">Seleccionar</button>
+                                        <button 
+                                            type="button"
+                                            class="text-blue-600 hover:underline font-bold text-xs" 
+                                            @click="seleccionarVenta(venta)">
+                                            Seleccionar
+                                        </button>
                                     </td>
                                 </tr>
                             </template>
@@ -76,7 +86,7 @@
                     <template x-if="ventaSeleccionada">
                         <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
                             <p class="text-xs text-blue-600 font-bold uppercase">Venta Seleccionada:</p>
-                            <p class="text-sm font-black text-slate-700" x-text="'Folio: ' + ventaSeleccionada.folio"></p>
+                            <p class="text-sm font-black text-slate-700" x-text="'Folio: ' + ventaSeleccionada.reference"></p>
                             <p class="text-sm text-emerald-600 font-bold" x-text="'Total: ' + formatMoney(ventaSeleccionada.total)"></p>
                         </div>
                     </template>
@@ -94,25 +104,123 @@
 
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1">Régimen Fiscal</label>
-                            <select name="tax_system" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white outline-none">
-                                <option value="601">General de Ley Personas Morales</option>
-                                <option value="605">Sueldos y Salarios</option>
-                                <option value="626">Resico</option>
+                            <select name="tax_system" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white">
+                                <option value="601">601 - General de Ley Personas Morales</option>
+                                <option value="603">603 - Personas Morales con Fines no Lucrativos</option>
+                                <option value="605">605 - Sueldos y Salarios e Ingresos Asimilados a Salarios</option>
+                                <option value="606">606 - Arrendamiento</option>
+                                <option value="607">607 - Régimen de Enajenación o Adquisición de Bienes</option>
+                                <option value="608">608 - Demás ingresos</option>
+                                <option value="610">610 - Residentes en el Extranjero sin Establecimiento Permanente en México</option>
+                                <option value="611">611 - Ingresos por Dividendos (socios y accionistas)</option>
+                                <option value="612">612 - Personas Físicas con Actividades Empresariales y Profesionales</option>
+                                <option value="614">614 - Ingresos por Intereses</option>
+                                <option value="615">615 - Régimen de los ingresos por obtención de premios</option>
+                                <option value="616">616 - Sin obligaciones fiscales</option>
+                                <option value="620">620 - Sociedades Cooperativas de Producción que optan por diferir sus ingresos</option>
+                                <option value="621">621 - Incorporación Fiscal (RIF)</option>
+                                <option value="622">622 - Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras (AGAPES)</option>
+                                <option value="623">623 - Opcional para Grupos de Sociedades</option>
+                                <option value="624">624 - Coordinados</option>
+                                <option value="625">625 - Actividades Empresariales con ingresos a través de Plataformas Tecnológicas</option>
+                                <option value="626">626 - Régimen Simplificado de Confianza (RESICO)</option>
+                                <option value="628">628 - Hidrocarburos</option>
+                                <option value="629">629 - De los Regímenes Fiscales Preferentes y de las Empresas Multinacionales</option>
+                                <option value="630">630 - Enajenación de acciones en bolsa de valores</option>
                             </select>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Email</label>
-                            <input type="email" name="email" class="w-full border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="correo@ejemplo.com" required>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Uso de CFDI</label>
+                            <select name="use_cfdi" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white">
+                                <option value="G01" selected>G01 - Adquisición de mercancías</option>
+                                <option value="G02">G02 - Devoluciones, descuentos o bonificaciones</option>
+                                <option value="G03">G03 - Gastos en general</option>
+                                
+                                <option value="I01">I01 - Construcciones</option>
+                                <option value="I02">I02 - Mobiliario y equipo de oficina por inversiones</option>
+                                <option value="I03">I03 - Equipo de transporte</option>
+                                <option value="I04">I04 - Equipo de cómputo y accesorios</option>
+                                <option value="I05">I05 - Dados, troqueles, moldes, matrices y herramental</option>
+                                <option value="I06">I06 - Comunicaciones telefónicas</option>
+                                <option value="I07">I07 - Comunicaciones satelitales</option>
+                                <option value="I08">I08 - Otra maquinaria y equipo</option>
+                                
+                                <option value="D01">D01 - Honorarios médicos, dentales y gastos hospitalarios</option>
+                                <option value="D02">D02 - Gastos médicos por incapacidad o discapacidad</option>
+                                <option value="D03">D03 - Gastos funerales</option>
+                                <option value="D04">D04 - Donativos</option>
+                                <option value="D05">D05 - Intereses reales efectivamente pagados por créditos hipotecarios (casa habitación)</option>
+                                <option value="D06">D06 - Aportaciones voluntarias al SAR</option>
+                                <option value="D07">D07 - Primas por seguros de gastos médicos</option>
+                                <option value="D08">D08 - Gastos de transportación escolar obligatoria</option>
+                                <option value="D09">D09 - Depósitos en cuentas especiales para el ahorro, primas que tengan como base planes de pensiones</option>
+                                <option value="D10">D10 - Pagos por servicios educativos (colegiaturas)</option>
+                                
+                                <option value="S01">S01 - Sin efectos fiscales</option>
+                                <option value="CP01">CP01 - Pagos</option>
+                                <option value="CN01">CN01 - Nómina</option>
+                            </select>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Código Postal</label>
-                            <input type="text" name="zip" class="w-full border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="01000" required>
+                        <div class="grid grid-cols-2 gap-4">
+                            {{-- Método de Pago --}}
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Método de Pago</label>
+                                <select name="payment_method" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white">
+                                    <option value="PUE" selected>PUE - Una sola exhibición</option>
+                                    <option value="PPD">PPD - Parcialidades o Diferido</option>
+                                </select>
+                            </div>
+                            {{-- Forma de Pago (Tú lo llamas Formato de pago) --}}
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Forma de Pago</label>
+                                <select name="payment_form" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white">
+                                    <option value="01" selected>01 - Efectivo</option>
+                                    <option value="02">02 - Cheque nominativo</option>
+                                    <option value="03">03 - Transferencia electrónica de fondos</option>
+                                    <option value="04">04 - Tarjeta de crédito</option>
+                                    <option value="05">05 - Monedero electrónico</option>
+                                    <option value="06">06 - Dinero electrónico</option>
+                                    <option value="08">08 - Vales de despensa</option>
+                                    <option value="12">12 - Dación en pago</option>
+                                    <option value="13">13 - Pago por subrogación</option>
+                                    <option value="14">14 - Pago por consignación</option>
+                                    <option value="15">15 - Condonación</option>
+                                    <option value="17">17 - Compensación</option>
+                                    <option value="23">23 - Novación</option>
+                                    <option value="24">24 - Confusión</option>
+                                    <option value="25">25 - Remisión de deuda</option>
+                                    <option value="26">26 - Prescripción o caducidad</option>
+                                    <option value="27">27 - A satisfacción del acreedor</option>
+                                    <option value="28">28 - Tarjeta de débito</option>
+                                    <option value="29">29 - Tarjeta de servicios</option>
+                                    <option value="30">30 - Aplicación de anticipos</option>
+                                    <option value="31">31 - Intermediarios pagos</option>
+                                    <option value="99">99 - Por definir</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 mt-4">
-                            Generar Factura CFDI 4.0
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Email</label>
+                                <input type="email" name="email" class="w-full border border-slate-300 rounded-xl p-2.5" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Código Postal</label>
+                                <input type="text" name="zip" class="w-full border border-slate-300 rounded-xl p-2.5" required>
+                            </div>
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            :disabled="!ventaSeleccionada"
+                            :class="!ventaSeleccionada ? 'bg-slate-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
+                            class="w-full text-white font-bold py-3 rounded-xl transition-all shadow-lg"
+                        >
+                            <span x-show="ventaSeleccionada">Generar Factura</span>
+                            <span x-show="!ventaSeleccionada">Seleccione una venta de la tabla</span>
                         </button>
                     </div>
                 </form>
@@ -125,15 +233,40 @@
     function historialSystem() {
         return {
             ventas: [],
-            ventaSeleccionada: null, // <--- Nueva variable
-            init() {
-                this.ventas = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+            ventaSeleccionada: null,
+            cargando: true,
+
+            async init() {
+                try {
+                    // Llamamos a la ruta que ya tienes definida
+                    const response = await fetch('/ventas/api-historial');
+                    if (!response.ok) throw new Error('Error al obtener datos');
+                    
+                    this.ventas = await response.json();
+                } catch (error) {
+                    console.error("Error cargando el historial:", error);
+                    // Opcional: Fallback al localStorage si falla la red
+                    this.ventas = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+                } finally {
+                    this.cargando = false;
+                }
             },
+
             seleccionarVenta(venta) {
-                this.ventaSeleccionada = venta;
+                // Mapeamos los datos para que el controlador de factura los entienda
+                // Si en tu base de datos la relación se llama 'items', 
+                // la convertimos a 'detalles' para que tu FacturaController no falle.
+                this.ventaSeleccionada = {
+                    ...venta,
+                    detalles: venta.items || venta.detalles // Asegura compatibilidad
+                };
             },
+
             formatMoney(amount) {
-                return '$' + Number(amount).toLocaleString('es-MX', { minimumFractionDigits: 2 });
+                return '$' + Number(amount).toLocaleString('es-MX', { 
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2 
+                });
             }
         }
     }

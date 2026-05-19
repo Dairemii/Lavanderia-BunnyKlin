@@ -1,5 +1,5 @@
 {{-- Modal de Edición/Creación de Productos del POS --}}
-<div x-cloak x-show="itemModal.open" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
+<div x-show="itemModal.open" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
     <div class="bg-white rounded-3xl shadow-2xl border-2 border-slate-100 w-full max-w-md overflow-hidden animate-fade-in" @click.stop>
         <div class="p-6 border-b border-slate-100 bg-[#F4F8FC]">
             <h3 class="text-2xl font-black text-[#1E55AA]" x-text="itemModal.mode === 'add' ? 'Nuevo Elemento' : (itemModal.mode === 'edit' ? 'Editar Elemento' : 'Eliminar Elemento')"></h3>
@@ -13,31 +13,58 @@
                         <label class="block text-sm font-black text-[#1E55AA] mb-1">Nombre</label>
                         <input type="text" x-model="itemModal.name" required class="w-full rounded-xl border-2 border-slate-100 bg-white py-3 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
                     </div>
+                    
+                    {{-- NUEVO: Campo Clave SAT (Agregado de tu compañero) --}}
+                    <div>
+                        <label class="block text-sm font-black text-[#1E55AA] mb-1">Clave SAT</label>
+                        <input type="text" x-model="itemModal.clave_prodserv" placeholder="80101500" maxlength="8" class="w-full rounded-xl border-2 border-slate-100 bg-white py-3 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] transition-all">
+                    </div>
+
                     <div>
                         <label class="block text-sm font-black text-[#1E55AA] mb-1">Precio ($)</label>
                         <input type="number" x-model="itemModal.price" required class="w-full rounded-xl border-2 border-slate-100 bg-white py-3 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
                     </div>
 
                     {{-- Campo: Descripción (Solo Servicios y Suscripciones) --}}
-                    <div x-show="itemModal.category === 'services' || itemModal.category === 'subscriptions'" x-collapse>
+                    <div x-show="itemModal.category === 'services' || itemModal.category === 'subscriptions'" x-transition>
                         <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Descripción</label>
                         <textarea x-model="itemModal.description" rows="2" placeholder="Detalles adicionales..." class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors"></textarea>
                     </div>
 
                     {{-- Campos: Stock y Unidad (Solo Insumos) --}}
-                    <div x-show="itemModal.category === 'supplies'" class="grid grid-cols-2 gap-4" x-collapse>
+                    <div x-show="itemModal.category === 'supplies'" class="grid grid-cols-2 gap-4" x-transition>
                         <div>
                             <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Stock</label>
                             <input type="number" x-model="itemModal.stock" placeholder="0" class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors">
                         </div>
+                        {{-- NUEVO: Select de Unidad de Medida (Agregado de tu compañero) --}}
                         <div>
-                            <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Unidad</label>
-                            <input type="text" x-model="itemModal.unit" placeholder="Ej. Lts, Pzas" class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors">
+                            <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Unidad de Medida</label>
+                            <select x-model="itemModal.unit" class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors">
+                                <!-- Las más comunes -->
+                                <option value="H87" selected>H87 - Pieza</option>
+                                <option value="E48">E48 - Unidad de servicio</option>
+                                <option value="ACT">ACT - Actividad</option>
+                                <option value="C62">C62 - Uno (Sin unidad específica)</option>
+                                
+                                <!-- Peso y Volumen -->
+                                <option value="KGM">KGM - Kilogramo</option>
+                                <option value="GRM">GRM - Gramo</option>
+                                <option value="LTR">LTR - Litro</option>
+                                <option value="MLT">MLT - Mililitro</option>                          
+                                
+                                <!-- Otras comunes -->
+                                <option value="SET">SET - Conjunto / Juego</option>
+                                <option value="XKI">XKI - Kit (Conjunto de Piezas)</option>
+                                <option value="DPC">DPC - Docena de Piezas</option>
+                                <option value="XBX">XBX - Caja</option>
+                                <option value="TNE">TNE - Tonelada métrica</option>
+                            </select>
                         </div>
                     </div>
 
                     {{-- Campo: Duración (Solo Suscripciones) --}}
-                    <div x-show="itemModal.category === 'subscriptions'" x-collapse>
+                    <div x-show="itemModal.category === 'subscriptions'" x-transition>
                         <label class="block text-sm font-extrabold text-[#1E55AA]/70 mb-2 ml-1">Duración (Meses)</label>
                         <input type="number" x-model="itemModal.duration_months" placeholder="1" class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors">
                     </div>
@@ -63,20 +90,18 @@
 </div>
 
 {{-- Modal Pre-Confirmación (Checkout con Selección de Método) --}}
-<div x-cloak x-show="showPreConfirmacion" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
+<div x-show="showPreConfirmacion" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
     <div class="bg-white rounded-3xl shadow-2xl border-2 border-slate-100 w-full max-w-lg overflow-hidden animate-fade-in" @click.stop>
 
         <div class="p-6 border-b border-slate-100 bg-[#F4F8FC]">
             <h3 class="text-2xl font-black text-[#1E55AA]">Completar Venta</h3>
             <p class="text-[#1E55AA]/60 font-bold mt-1">Registra al cliente y selecciona el método de pago</p>
-            <p x-show="cart.some(item => item.category === 'subscriptions')" x-show="cart.some(item => item.category === 'subscriptions')" class="text-[#1E55AA]/60 font-bold mt-1">Registra al cliente y su vigencia (Opcional)</p>
+            <p x-show="cart.some(item => item.category === 'subscriptions')" class="text-[#1E55AA]/60 font-bold mt-1">Registra al cliente y su vigencia (Opcional)</p>
         </div>
 
         <div class="p-6 space-y-4">
-
-            <div x-show="cart.some(item => item.category === 'subscriptions')" x-collapse class="grid grid-cols-2 gap-4">
-
-            <div x-show="cart.some(item => item.category === 'subscriptions')" x-collapse class="grid grid-cols-2 gap-4">
+            
+            <div x-show="cart.some(item => item.category === 'subscriptions')" x-transition class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-black text-[#1E55AA] mb-1">Nombre del Cliente</label>
                     <input type="text" x-model="clienteForm.nombre" placeholder="Público en General" class="w-full rounded-xl border-2 border-slate-100 bg-white py-2.5 px-3 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
@@ -87,8 +112,7 @@
                 </div>
             </div>
 
-            <div x-show="cart.some(item => item.category === 'subscriptions')" x-collapse class="grid grid-cols-2 gap-4 bg-[#F4F8FC] p-4 rounded-xl border border-[#1E55AA]/10 mt-2">
-            <div x-show="cart.some(item => item.category === 'subscriptions')" x-collapse class="grid grid-cols-2 gap-4 bg-[#F4F8FC] p-4 rounded-xl border border-[#1E55AA]/10 mt-2">
+            <div x-show="cart.some(item => item.category === 'subscriptions')" x-transition class="grid grid-cols-2 gap-4 bg-[#F4F8FC] p-4 rounded-xl border border-[#1E55AA]/10 mt-2">
                 <div>
                     <label class="block text-sm font-black text-[#1E55AA] mb-1">Inicio de Plan</label>
                     <input type="date" x-model="clienteForm.inicio" class="w-full rounded-xl border-2 border-slate-100 bg-white py-2 px-3 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:ring-2 focus:ring-[#1E55AA]/10 transition-all">
@@ -122,8 +146,8 @@
     </div>
 </div>
 
-{{-- Modal de Carga (Esperando Terminal) CORREGIDO --}}
-<div x-cloak x-show="esperandoTerminal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 backdrop-blur-sm p-4 transition-opacity">
+{{-- Modal de Carga (Esperando Terminal) --}}
+<div x-show="esperandoTerminal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 backdrop-blur-sm p-4 transition-opacity">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden text-center p-8 relative" @click.stop>
         
         <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 mb-6 relative">
@@ -145,7 +169,7 @@
 </div>
 
 {{-- Modal de Error de Pago --}}
-<div x-cloak x-show="showErrorModal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
+<div x-show="showErrorModal" style="display: none;" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
     <div class="bg-white rounded-3xl shadow-2xl border-2 border-rose-100 w-full max-w-sm overflow-hidden text-center p-8 animate-fade-in" @click.stop>
         
         <div class="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-rose-100">
@@ -162,7 +186,7 @@
 </div>
 
 {{-- Modal Éxito --}}
-<div x-cloak x-show="showConfirmacion" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
+<div x-show="showConfirmacion" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
     <div class="bg-white rounded-3xl shadow-2xl border-2 border-slate-100 w-full max-w-sm overflow-hidden text-center p-8 animate-fade-in" @click.stop>
         <div class="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>

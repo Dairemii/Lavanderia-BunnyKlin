@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Supply extends Model
 {
-    protected $fillable = ['name', 'price', 'stock', 'unit', 'is_active'];
+    protected $fillable = ['name', 'clave_prodserv', 'price', 'stock', 'unit', 'is_active'];
 
     protected $casts = [
         'is_active' => 'boolean',

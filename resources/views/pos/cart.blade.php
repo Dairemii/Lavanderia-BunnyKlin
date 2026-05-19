@@ -28,7 +28,7 @@
                                   'bg-purple-100 text-purple-600': item.category === 'subscriptions',
                                   'bg-orange-100 text-orange-600': item.category === 'extras'
                               }" 
-                              x-text="item.category === 'services' ? 'Servicio' : (item.category === 'supplies' ? 'Insumo' : (item.category === 'subscriptions' ? 'Suscripci√≥n' : 'Extra'))">
+                              x-text="item.category === 'services' ? 'Servicio' : (item.category === 'supplies' ? 'Insumo' : (item.category === 'subscriptions' ? 'Suscripci®Æn' : 'Extra'))">
                         </span>
                     </div>
                     <div class="text-sm font-black text-emerald-500 shrink-0" x-text="formatMoney(item.price * item.quantity)"></div>
@@ -50,7 +50,7 @@
 
     </div>
 
-    {{-- Resumen y Bot√≥n de Cobrar --}}
+    {{-- Resumen y Bot®Æn de Cobrar --}}
     <div class="pt-4 mt-2 border-t-2 border-slate-100">
         <div class="flex justify-between items-end mb-4">
             <span class="text-sm font-bold text-[#1E55AA]/60">Total Venta:</span>
