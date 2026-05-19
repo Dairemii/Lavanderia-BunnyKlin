@@ -14,6 +14,8 @@ use App\Models\Subscription;
 use App\Http\Controllers\CatalogoController;
 // Import para Controlador del historial de ventas
 use App\Http\Controllers\SalesController;
+// Import para Controlador de orders
+use App\Http\Controllers\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,6 +61,22 @@ Route::get('/api/clientes/init', [App\Http\Controllers\ClientController::class, 
 Route::post('/api/clientes', [App\Http\Controllers\ClientController::class, 'store']);
 Route::put('/api/clientes/{client}', [App\Http\Controllers\ClientController::class, 'update']);
 Route::delete('/api/clientes/{client}', [App\Http\Controllers\ClientController::class, 'destroy']);
+
+// Rutas para ordenes/pedidos
+Route::prefix('api/orders')->group(function () {
+    // Carga inicial de datos para la vista (GET)
+    Route::get('/init', [OrderController::class, 'apiInit']);
+
+    // Guardar un nuevo encargo (POST)
+    Route::post('/', [OrderController::class, 'store']);
+
+    // Actualizar un encargo existente (PUT)
+    // El parámetro {order} usa el Model Binding de Laravel
+    Route::put('/{order}', [OrderController::class, 'update']);
+
+    // Eliminar un encargo (DELETE)
+    Route::delete('/{order}', [OrderController::class, 'destroy']);
+});
 
 Route::get('/historial', function () {
     return view('pages.historial', ['title' => 'Historial de Ventas']);

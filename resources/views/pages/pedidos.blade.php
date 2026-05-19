@@ -28,7 +28,7 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 </style>
 
-<div x-data="ordersManager()" x-cloak class="font-nunito relative min-h-[85vh] bg-[#F4F8FC] text-[#1E55AA] selection:bg-[#FFE63C] selection:text-[#1E55AA] rounded-3xl p-4 md:p-6 2xl:p-10 z-10 overflow-hidden">
+<div x-data="ordersManager" x-cloak class="font-nunito relative min-h-[85vh] bg-[#F4F8FC] text-[#1E55AA] selection:bg-[#FFE63C] selection:text-[#1E55AA] rounded-3xl p-4 md:p-6 2xl:p-10 z-10 overflow-hidden">
 
     {{-- Fondo Decorativo --}}
     <div class="absolute inset-0 -z-10 pointer-events-none">
@@ -153,15 +153,53 @@
             </div>
 
             <form @submit.prevent="saveOrder" class="space-y-6">
+
+                {{-- NUEVO: Checkbox de Cliente Existente --}}
+                <div x-show="modalMode === 'add'" class="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border-2 border-slate-100 transition-colors hover:border-[#1E55AA]/30">
+                    <input type="checkbox" id="isExistingClient" x-model="isExistingClient" @change="clearClientSelection()"
+                        class="w-5 h-5 text-[#1E55AA] rounded-md border-slate-300 focus:ring-[#1E55AA] cursor-pointer">
+                    <label for="isExistingClient" class="font-black text-[#1E55AA] cursor-pointer select-none">El cliente ya está registrado (Buscar)</label>
+                </div>
+
+                {{-- Bloque de Cliente --}}
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <div>
+                    <div class="relative">
                         <label class="mb-2 block text-sm font-black text-[#1E55AA]">Nombre del Cliente</label>
-                        <input type="text" x-model="currentOrder.name" :disabled="modalMode === 'view'" required
+
+                        {{-- Input que actúa como buscador si isExistingClient es true --}}
+                        <input type="text" x-model="currentOrder.name"
+                            :disabled="modalMode === 'view' || (isExistingClient && currentOrder.client_id !== null)"
+                            @focus="showClientDropdown = isExistingClient"
+                            @click.away="showClientDropdown = false"
+                            :placeholder="isExistingClient ? '🔍 Escribe para buscar...' : 'Nombre completo'" required
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all">
+
+                        {{-- Botón para limpiar selección (Aparece cuando ya elegiste a uno) --}}
+                        <button type="button" x-show="isExistingClient && currentOrder.client_id && modalMode === 'add'" @click="clearClientSelection()" class="absolute right-4 top-11 text-rose-400 hover:text-rose-600 transition-colors" title="Buscar otro">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+
+                        {{-- Menú Desplegable de Autocompletado --}}
+                        <div x-show="showClientDropdown && isExistingClient && modalMode === 'add'" x-transition
+                            class="absolute z-50 w-full mt-2 bg-white border-2 border-slate-100 rounded-2xl shadow-xl max-h-60 overflow-y-auto custom-scrollbar">
+
+                            <template x-for="c in filteredClientsList" :key="c.id">
+                                <div @click="selectClient(c)" class="px-4 py-3 hover:bg-[#F4F8FC] cursor-pointer border-b border-slate-50 last:border-0 transition-colors">
+                                    <div class="font-black text-[#1E55AA]" x-text="c.name"></div>
+                                    <div class="text-xs font-bold text-slate-400" x-text="c.phone || 'Sin teléfono'"></div>
+                                </div>
+                            </template>
+
+                            <div x-show="filteredClientsList.length === 0" class="px-4 py-4 text-sm font-bold text-slate-400 text-center">
+                                No se encontraron clientes.
+                            </div>
+                        </div>
+
                     </div>
                     <div>
                         <label class="mb-2 block text-sm font-black text-[#1E55AA]">Teléfono</label>
-                        <input type="text" x-model="currentOrder.phone" :disabled="modalMode === 'view'" placeholder="Opcional"
+                        {{-- Se bloquea automáticamente si eliges un cliente de la lista --}}
+                        <input type="text" x-model="currentOrder.phone" :disabled="modalMode === 'view' || (isExistingClient && currentOrder.client_id !== null)" placeholder="Opcional"
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all">
                     </div>
                 </div>
@@ -233,106 +271,6 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('ordersManager', () => ({
-            searchQuery: '',
-            isModalOpen: false,
-            modalMode: 'add',
-            orders: [],
-            currentOrder: { id: null, ticket: '', name: '', phone: '', service: 'Lavado por Kilo', details: '', total: 0, advance: 0, status: 'Recibido', arrivalDate: '', deliveryDate: '' },
+<script src="{{ asset('js/orders.js') }}"></script>
 
-            init() {
-                const stored = localStorage.getItem('lavanderia_encargos_v3');
-                if (stored) {
-                    this.orders = JSON.parse(stored);
-                } else {
-                    this.orders = [];
-                    this.saveToStorage();
-                }
-            },
-
-            get filteredOrders() {
-                if (this.searchQuery === '') return this.orders;
-                const q = this.searchQuery.toLowerCase();
-                return this.orders.filter(o =>
-                    (o.name && o.name.toLowerCase().includes(q)) ||
-                    (o.phone && o.phone.toLowerCase().includes(q)) ||
-                    (o.ticket && o.ticket.toLowerCase().includes(q))
-                );
-            },
-
-            getStatusClass(status) {
-                switch(status) {
-                    case 'Recibido': return 'bg-slate-100 text-slate-600 border-slate-200';
-                    case 'En Proceso': return 'bg-[#FFE63C]/30 text-[#1E55AA] border-[#FFE63C]/50';
-                    case 'Listo': return 'bg-emerald-50 text-emerald-600 border-emerald-200 shadow-sm';
-                    case 'Entregado': return 'bg-blue-50 text-blue-600 border-blue-200';
-                    default: return 'bg-slate-100 text-slate-600 border-slate-200';
-                }
-            },
-
-            formatMoney(amount) {
-                return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
-            },
-
-            generateTicket() {
-                return 'ORD-' + Math.floor(1000 + Math.random() * 9000);
-            },
-
-            openModal(mode, order = null) {
-                this.modalMode = mode;
-                if (order) {
-                    this.currentOrder = { ...order };
-                } else {
-                    let today = new Date();
-                    let formattedToday = today.toISOString().split('T')[0];
-
-                    this.currentOrder = {
-                        id: Date.now(),
-                        ticket: this.generateTicket(),
-                        name: '',
-                        phone: '',
-                        service: 'Lavado por Kilo',
-                        details: '',
-                        total: 0,
-                        advance: 0,
-                        status: 'Recibido',
-                        arrivalDate: formattedToday,
-                        deliveryDate: ''
-                    };
-                }
-                this.isModalOpen = true;
-            },
-
-            closeModal() {
-                this.isModalOpen = false;
-            },
-
-            saveOrder() {
-                if (this.modalMode === 'add') {
-                    this.orders.unshift(this.currentOrder);
-                } else {
-                    const index = this.orders.findIndex(o => o.id === this.currentOrder.id);
-                    if (index !== -1) {
-                        this.orders.splice(index, 1, this.currentOrder);
-                    }
-                }
-                this.saveToStorage();
-                this.closeModal();
-            },
-
-            deleteOrder(id) {
-                if (confirm('¿Estás seguro de que deseas eliminar este encargo?')) {
-                    this.orders = this.orders.filter(o => o.id !== id);
-                    this.saveToStorage();
-                }
-            },
-
-            saveToStorage() {
-                localStorage.setItem('lavanderia_encargos_v3', JSON.stringify(this.orders));
-            }
-        }))
-    })
-</script>
 @endsection

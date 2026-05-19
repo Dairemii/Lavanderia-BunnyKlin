@@ -13,15 +13,25 @@ return new class () extends Migration {
         Schema::create('clients', function (Blueprint $table) {
             $table->id();
 
+            // --- Datos Generales ---
             $table->string('name', 100);
             $table->string('phone', 20)->nullable();
+            $table->string('email')->nullable();
+
+            // --- Suscripción ---
             $table->foreignId('subscription_id')
                 ->nullable()
                 ->constrained('subscriptions')
                 ->nullOnDelete();
             $table->date('end_subscription')->nullable();
+
+            // --- Datos Fiscales ---
             $table->string('rfc', 14)->nullable();
             $table->string('razon_social')->nullable();
+            $table->string('regimen_fiscal', 10)->nullable();
+            $table->boolean('same_billing_address')->default(false);
+
+            // --- Dirección ---
             $table->string('codigo_postal', 5)->nullable();
             $table->string('calle')->nullable();
             $table->string('numero_exterior', 20)->nullable();

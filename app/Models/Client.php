@@ -12,10 +12,13 @@ class Client extends Model
     protected $fillable = [
         'name',
         'phone',
+        'email', // <-- Agregado
         'subscription_id',
         'end_subscription',
         'rfc',
         'razon_social',
+        'regimen_fiscal', // <-- Agregado
+        'same_billing_address', // <-- Agregado
         'codigo_postal',
         'calle',
         'numero_exterior',
@@ -28,6 +31,7 @@ class Client extends Model
     // Casteo de datos: Le decimos a Laravel que trate este campo como un objeto Carbon (Fecha)
     protected $casts = [
         'end_subscription' => 'date',
+        'same_billing_address' => 'boolean',
     ];
 
     // --- ACCESOR (Campo virtual) ---
