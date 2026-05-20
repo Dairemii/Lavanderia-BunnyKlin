@@ -92,7 +92,8 @@ Route::get('/maquinas', function () {
 // =========================================================
 
 Route::get('/catalogo', function () {
-    return view('pages.catalogo', ['title' => 'Servicios y Productos']);
+    $services = App\Models\Service::query()->latest()->get();
+    return view('pages.catalogo', ['title' => 'Servicios y Productos', 'services' => $services]);
 })->name('catalogo');
 
 

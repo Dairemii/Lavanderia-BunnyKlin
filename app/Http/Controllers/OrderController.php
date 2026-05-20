@@ -15,8 +15,17 @@ class OrderController extends Controller
     public function apiInit()
     {
         // Traemos las órdenes con su cliente y venta asociados
-        $orders = Order::with(['client', 'sale'])->latest()->get();
-        return response()->json(['orders' => $orders]);
+        $orders = Order::with(['client', 'sale', 'service'])->latest()->get();
+
+        $services = \App\Models\Service::query()
+            ->where('is_for_orders', true)
+            ->where('is_active', true)
+            ->get(['id', 'name', 'price']);
+
+        return response()->json([
+            'orders' => $orders,
+            'services' => $services,
+        ]);
     }
 
     public function store(Request $request)
@@ -25,10 +34,11 @@ class OrderController extends Controller
             'ticket'       => 'required|string|unique:sales,reference', // Validamos contra sales
             'name'         => 'required|string',
             'phone'        => 'nullable|string',
-            'service'      => 'required|string',
+            'service_id'   => 'required|exists:services,id',
+            'quantity'     => 'required|numeric|min:0.1',
             'details'      => 'nullable|string',
             'total'        => 'required|numeric|min:0',
-            'advance'      => 'nullable|numeric|min:0',
+            'advance'      => 'nullable|numeric|min:0|lte:total',
             'status'       => 'required|string',
             'arrivalDate'  => 'required|date',
             'deliveryDate' => 'nullable|date',
@@ -45,7 +55,8 @@ class OrderController extends Controller
         $datosValidados = $request->validate([
             'name'         => 'required|string',
             'phone'        => 'nullable|string',
-            'service'      => 'required|string',
+            'service_id'   => 'required|exists:services,id',
+            'quantity'     => 'required|numeric|min:0.1',
             'details'      => 'nullable|string',
             'total'        => 'required|numeric|min:0',
             'advance'      => 'nullable|numeric|min:0',

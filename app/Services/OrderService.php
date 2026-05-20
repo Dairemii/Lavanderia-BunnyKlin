@@ -27,7 +27,8 @@ class OrderService
                 // Modo EDICIÓN: Solo actualizamos la orden (y la venta si cambió el total)
                 $order->update([
                     'client_id' => $clientId,
-                    'service_name' => $datos['service'],
+                    'service_id' => $datos['service_id'],
+                    'quantity' => $datos['quantity'],
                     'details' => $datos['details'] ?? null,
                     'total_price' => $datos['total'],
                     'advance_payment' => $datos['advance'] ?? 0,
@@ -56,7 +57,8 @@ class OrderService
             return Order::query()->create([
                 'sale_id' => $sale->id,
                 'client_id' => $clientId,
-                'service_name' => $datos['service'],
+                'service_id' => $datos['service_id'],
+                'quantity' => $datos['quantity'],
                 'details' => $datos['details'] ?? null,
                 'total_price' => $datos['total'],
                 'advance_payment' => $datos['advance'] ?? 0,

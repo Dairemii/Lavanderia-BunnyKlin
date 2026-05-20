@@ -16,7 +16,8 @@ class CatalogoService
                 'clave_prodserv' => $datos['clave_prodserv'] ?? null, // <-- AGREGAR
                 'price'          => $datos['price'],
                 'description'    => $datos['description'] ?? null,
-                'is_active'      => true
+                'is_active'      => true,
+                'is_for_orders'  => $datos['is_for_orders'] ?? false,
             ]),
 
             'supplies'      => Supply::query()->create([
@@ -52,6 +53,7 @@ class CatalogoService
                     'clave_prodserv' => $datos['clave_prodserv'] ?? null, // <-- AGREGAR
                     'price'          => $datos['price'],
                     'description'    => $datos['description'] ?? null,
+                    'is_for_orders'  => $datos['is_for_orders'] ?? false,
                 ]);
             }),
 

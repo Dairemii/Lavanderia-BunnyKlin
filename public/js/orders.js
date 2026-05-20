@@ -13,7 +13,8 @@ document.addEventListener("alpine:init", () => {
             ticket: "",
             name: "",
             phone: "",
-            service: "Lavado por Kilo",
+            service_id: "",
+            quantity: 0,
             details: "",
             total: 0,
             advance: 0,
@@ -34,6 +35,7 @@ document.addEventListener("alpine:init", () => {
 
                 const data = await response.json();
                 this.orders = data.orders.map((o) => this.mapearOrden(o));
+                this.availableServices = data.services;
             } catch (error) {
                 console.error("Error cargando órdenes:", error);
             }
@@ -46,7 +48,8 @@ document.addEventListener("alpine:init", () => {
                 ticket: o.sale ? o.sale.reference : "N/A",
                 name: o.client ? o.client.name : "Cliente Mostrador",
                 phone: o.client ? o.client.phone : "",
-                service: o.service_name,
+                service_id: o.service_id,
+                quantity: o.quantity ? parseFloat(o.quantity) : 1,
                 details: o.details,
                 total: parseFloat(o.total_price),
                 advance: parseFloat(o.advance_payment),
@@ -87,6 +90,25 @@ document.addEventListener("alpine:init", () => {
             }
         },
 
+        calcularTotalAutomatico() {
+            if (!this.currentOrder.service_id || !this.currentOrder.quantity) {
+                this.currentOrder.total = 0;
+                return;
+            }
+
+            // Buscamos el servicio seleccionado en nuestra lista local
+            const servicioSeleccionado = this.availableServices.find(
+                (s) => s.id == this.currentOrder.service_id,
+            );
+
+            if (servicioSeleccionado) {
+                // Multiplicamos el precio base por la cantidad
+                this.currentOrder.total =
+                    parseFloat(servicioSeleccionado.price) *
+                    parseFloat(this.currentOrder.quantity);
+            }
+        },
+
         formatMoney(amount) {
             return new Intl.NumberFormat("es-MX", {
                 style: "currency",
@@ -104,6 +126,7 @@ document.addEventListener("alpine:init", () => {
             this.showClientDropdown = false; // Resetear dropdown
 
             if (order) {
+                console.log({ order });
                 this.currentOrder = { ...order };
             } else {
                 let formattedToday = new Date()
@@ -117,7 +140,8 @@ document.addEventListener("alpine:init", () => {
                     ticket: this.generateTicket(),
                     name: "",
                     phone: "",
-                    service: "Lavado por Kilo",
+                    service_id: "",
+                    quantity: 0,
                     details: "",
                     total: 0,
                     advance: 0,

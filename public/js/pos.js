@@ -11,9 +11,10 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             unit: item.unit || null,
             duration_months: item.duration_months || null,
             clave_prodserv: item.clave_prodserv || null,
+            is_active: item.is_active ? true : false,
+            is_for_orders: item.is_for_orders ? true : false,
         }));
     };
-    
 
     return {
         activeMode: "sale",
@@ -32,6 +33,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
             stock: 0,
             unit: "",
             duration_months: 1,
+            is_for_orders: false,
         },
 
         clienteForm: { nombre: "", telefono: "", inicio: "", fin: "" },
@@ -65,6 +67,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                 stock: 0,
                 unit: "",
                 duration_months: 1,
+                is_for_orders: false,
             };
         },
 
@@ -81,6 +84,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                 stock: item.stock || null,
                 unit: item.unit || null,
                 duration_months: item.duration_months || null,
+                is_for_orders: item.is_for_orders ? true : false,
             };
         },
 
@@ -97,6 +101,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                 stock: item.stock || null,
                 unit: item.unit || null,
                 duration_months: item.duration_months || null,
+                is_for_orders: item.is_for_orders ? true : false,
             };
         },
 
@@ -120,6 +125,7 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                 stock: this.itemModal.stock,
                 unit: this.itemModal.unit,
                 duration_months: this.itemModal.duration_months,
+                is_for_orders: this.itemModal.is_for_orders ? true : false,
             };
 
             let targetList =
@@ -199,9 +205,11 @@ function posSystem(servicesDb, suppliesDb, subscriptionsDb, extrasDb) {
                             data.item.description || null;
                         targetList[idx].stock = data.item.stock || null;
                         targetList[idx].unit = data.item.unit || null;
-
                         targetList[idx].duration_months =
                             data.item.duration_months || null;
+                        targetList[idx].is_for_orders = data.item.is_for_orders
+                            ? true
+                            : false;
 
                         // Actualizamos el item en el carrito
                         let cartIdx = this.cart.findIndex(
