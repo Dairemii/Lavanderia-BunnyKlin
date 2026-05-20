@@ -36,11 +36,20 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <template x-if="ventas.length === 0">
+                            {{-- Mientras carga --}}
+                            <template x-if="cargando">
+                                <tr>
+                                    <td colspan="4" class="py-12 text-center text-slate-400 animate-pulse">Cargando ventas...</td>
+                                </tr>
+                            </template>
+
+                            {{-- 2. Si ya terminó de cargar Y el array sigue vacío --}}
+                            <template x-if="!cargando && ventas.length === 0">
                                 <tr>
                                     <td colspan="4" class="py-12 text-center text-slate-400 font-bold">No hay ventas para mostrar.</td>
                                 </tr>
                             </template>
+
                             <template x-for="venta in ventas" :key="venta.id">
                                 <tr class="border-b border-slate-50 hover:bg-blue-50 transition-colors">
                                     <!-- 'reference' es el folio en tu tabla sales según la imagen común de estos sistemas -->
@@ -64,6 +73,32 @@
                         </tbody>
                     </table>
                 </div>
+
+                {{-- CONTROLES DE PAGINACIÓN --}}
+                <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between" x-show="lastPage > 1">
+                    <div class="text-sm text-slate-500">
+                        Mostrando página <span class="font-bold" x-text="currentPage"></span> de <span class="font-bold" x-text="lastPage"></span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button 
+                            type="button"
+                            class="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-bold transition-all"
+                            :class="currentPage === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 hover:bg-slate-50'"
+                            :disabled="currentPage === 1"
+                            @click="cambiarPagina(currentPage - 1)">
+                            Anterior
+                        </button>
+                        <button 
+                            type="button"
+                            class="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-bold transition-all"
+                            :class="currentPage === lastPage ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 hover:bg-slate-50'"
+                            :disabled="currentPage === lastPage"
+                            @click="cambiarPagina(currentPage + 1)">
+                            Siguiente
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -235,30 +270,45 @@
             ventas: [],
             ventaSeleccionada: null,
             cargando: true,
+            currentPage: 1,
+            lastPage: 1,
 
             async init() {
+                this.cargarVentas();
+            },
+
+            async cargarVentas(page = 1) {
+                this.cargando = true;
                 try {
-                    // Llamamos a la ruta que ya tienes definida
-                    const response = await fetch('/ventas/api-historial');
+                    // Pasamos el número de página a la API de Laravel
+                    const response = await fetch(`/ventas/api-historial?page=${page}`);
                     if (!response.ok) throw new Error('Error al obtener datos');
                     
-                    this.ventas = await response.json();
+                    const resultado = await response.json();
+                    
+                    // Al usar ->paginate(), los datos reales vienen dentro de .data
+                    this.ventas = resultado.data || [];
+                    this.currentPage = resultado.current_page || 1;
+                    this.lastPage = resultado.last_page || 1;
+
                 } catch (error) {
                     console.error("Error cargando el historial:", error);
-                    // Opcional: Fallback al localStorage si falla la red
-                    this.ventas = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+                    this.ventas = [];
                 } finally {
                     this.cargando = false;
                 }
             },
 
+            cambiarPagina(nuevaPagina) {
+                if (nuevaPagina >= 1 && nuevaPagina <= this.lastPage) {
+                    this.cargarVentas(nuevaPagina);
+                }
+            },
+
             seleccionarVenta(venta) {
-                // Mapeamos los datos para que el controlador de factura los entienda
-                // Si en tu base de datos la relación se llama 'items', 
-                // la convertimos a 'detalles' para que tu FacturaController no falle.
                 this.ventaSeleccionada = {
                     ...venta,
-                    detalles: venta.items || venta.detalles // Asegura compatibilidad
+                    detalles: venta.items || venta.detalles
                 };
             },
 
