@@ -28,7 +28,6 @@ return new class () extends Migration {
 
             $table->decimal('quantity', 8, 2)->default(0.00);
 
-            $table->string('service_name');
             $table->string('details')->nullable();
             $table->decimal('total_price', 10, 2);
             $table->decimal('advance_payment', 10, 2)->default(0.00);

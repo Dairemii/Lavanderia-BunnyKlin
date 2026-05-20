@@ -28,6 +28,16 @@
                         <textarea x-model="itemModal.description" rows="2" placeholder="Detalles adicionales..." class="w-full px-5 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-[#1E55AA] font-bold focus:outline-none focus:border-[#1E55AA] focus:bg-white transition-colors"></textarea>
                     </div>
 
+                    {{-- Campo: Checkbox Es Orden --}}
+                    <div x-show="itemModal.category === 'services'"
+                        class="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border-2 border-slate-100 transition-colors hover:border-[#1E55AA]/30">
+                        <input type="checkbox" id="is_for_orders" x-model="itemModal.is_for_orders" :disabled="itemModal.mode === 'delete'"
+                            class="w-5 h-5 text-[#1E55AA] rounded-md border-slate-300 focus:ring-[#1E55AA] cursor-pointer">
+                        <label for="is_for_orders" class="font-black text-[#1E55AA] cursor-pointer select-none">
+                            Este servicio es por encargo
+                        </label>
+                    </div>
+
                     {{-- Campos: Stock y Unidad (Solo Insumos) --}}
                     <div x-show="itemModal.category === 'supplies'" class="grid grid-cols-2 gap-4" x-collapse>
                         <div>
@@ -42,13 +52,13 @@
                                 <option value="E48">E48 - Unidad de servicio</option>
                                 <option value="ACT">ACT - Actividad</option>
                                 <option value="C62">C62 - Uno (Sin unidad específica)</option>
-                                
+
                                 <!-- Peso y Volumen -->
                                 <option value="KGM">KGM - Kilogramo</option>
                                 <option value="GRM">GRM - Gramo</option>
                                 <option value="LTR">LTR - Litro</option>
-                                <option value="MLT">MLT - Mililitro</option>                          
-                                
+                                <option value="MLT">MLT - Mililitro</option>
+
                                 <!-- Otras comunes -->
                                 <option value="SET">SET - Conjunto / Juego</option>
                                 <option value="XKI">XKI - Kit (Conjunto de Piezas)</option>

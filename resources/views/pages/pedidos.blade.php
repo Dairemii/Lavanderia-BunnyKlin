@@ -154,7 +154,7 @@
 
             <form @submit.prevent="saveOrder" class="space-y-6">
 
-                {{-- NUEVO: Checkbox de Cliente Existente --}}
+                {{-- Checkbox de Cliente Existente --}}
                 <div x-show="modalMode === 'add'" class="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border-2 border-slate-100 transition-colors hover:border-[#1E55AA]/30">
                     <input type="checkbox" id="isExistingClient" x-model="isExistingClient" @change="clearClientSelection()"
                         class="w-5 h-5 text-[#1E55AA] rounded-md border-slate-300 focus:ring-[#1E55AA] cursor-pointer">
@@ -168,18 +168,19 @@
 
                         {{-- Input que actúa como buscador si isExistingClient es true --}}
                         <input type="text" x-model="currentOrder.name"
-                            :disabled="modalMode === 'view' || (isExistingClient && currentOrder.client_id !== null)"
+                            {{-- NUEVO: Se bloquea en 'view', en 'edit', o si ya eligió un cliente en 'add' --}}
+                            :disabled="modalMode === 'view' || modalMode === 'edit' || (isExistingClient && currentOrder.client_id !== null)"
                             @focus="showClientDropdown = isExistingClient"
                             @click.away="showClientDropdown = false"
                             :placeholder="isExistingClient ? '🔍 Escribe para buscar...' : 'Nombre completo'" required
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all">
 
-                        {{-- Botón para limpiar selección (Aparece cuando ya elegiste a uno) --}}
+                        {{-- Botón para limpiar selección (Solo aparece en modo 'add') --}}
                         <button type="button" x-show="isExistingClient && currentOrder.client_id && modalMode === 'add'" @click="clearClientSelection()" class="absolute right-4 top-11 text-rose-400 hover:text-rose-600 transition-colors" title="Buscar otro">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
 
-                        {{-- Menú Desplegable de Autocompletado --}}
+                        {{-- Menú Desplegable de Autocompletado (Solo modo 'add') --}}
                         <div x-show="showClientDropdown && isExistingClient && modalMode === 'add'" x-transition
                             class="absolute z-50 w-full mt-2 bg-white border-2 border-slate-100 rounded-2xl shadow-xl max-h-60 overflow-y-auto custom-scrollbar">
 
@@ -198,27 +199,40 @@
                     </div>
                     <div>
                         <label class="mb-2 block text-sm font-black text-[#1E55AA]">Teléfono</label>
-                        {{-- Se bloquea automáticamente si eliges un cliente de la lista --}}
-                        <input type="text" x-model="currentOrder.phone" :disabled="modalMode === 'view' || (isExistingClient && currentOrder.client_id !== null)" placeholder="Opcional"
+                        {{-- NUEVO: Se bloquea en 'view', en 'edit', o si ya eligió un cliente en 'add' --}}
+                        <input type="text" x-model="currentOrder.phone"
+                            :disabled="modalMode === 'view' || modalMode === 'edit' || (isExistingClient && currentOrder.client_id !== null)"
+                            :placeholder="modalMode === 'view' ? 'No proporcionado' : 'Opcional'"
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <div>
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-12">
+
+                    {{-- Tipo de Servicio (Iterado desde la BD) --}}
+                    <div class="sm:col-span-6">
                         <label class="mb-2 block text-sm font-black text-[#1E55AA]">Tipo de Servicio</label>
-                        <select x-model="currentOrder.service" :disabled="modalMode === 'view'"
+                        <select x-model="currentOrder.service_id" :disabled="modalMode === 'view'" @change="calcularTotalAutomatico()" required
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all appearance-none cursor-pointer">
-                            <option value="Lavado por Kilo">Lavado por Kilo</option>
-                            <option value="Planchado">Planchado</option>
-                            <option value="Edredones / Cobertores">Edredones / Cobertores</option>
-                            <option value="Tintorería">Tintorería</option>
-                            <option value="Especial">Especial</option>
+                            <option value="">Seleccionar un servicio...</option>
+                            <template x-for="servicio in availableServices" :key="servicio.id">
+                                <option :value="servicio.id" x-text="servicio.name + ' (' + formatMoney(servicio.price) + ')'"></option>
+                            </template>
                         </select>
                     </div>
-                    <div>
-                        <label class="mb-2 block text-sm font-black text-[#1E55AA]">Detalles (Kilos / Piezas / Notas)</label>
-                        <input type="text" x-model="currentOrder.details" :disabled="modalMode === 'view'" placeholder=""
+
+                    {{-- NUEVO: Cantidad o Kilos --}}
+                    <div class="sm:col-span-3">
+                        <label class="mb-2 block text-sm font-black text-[#1E55AA]">Kilos / Piezas</label>
+                        <input type="number" step="0.1" min="0.1" x-model.number="currentOrder.quantity" :disabled="modalMode === 'view'" @input="calcularTotalAutomatico()" required
+                            class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-black text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all text-center">
+                    </div>
+
+                    {{-- Notas / Detalles extra --}}
+                    <div class="sm:col-span-12">
+                        <label class="mb-2 block text-sm font-black text-[#1E55AA]">Detalles Especiales o Notas</label>
+                        <input type="text" x-model="currentOrder.details" :disabled="modalMode === 'view'"
+                            :placeholder="modalMode === 'view' ? 'No proporcionado' : 'Manchas difíciles, planchado raya al centro, etc.'"
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-bold text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all">
                     </div>
                 </div>
@@ -226,12 +240,18 @@
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
                     <div>
                         <label class="mb-2 block text-sm font-black text-[#1E55AA]">Costo Total ($)</label>
-                        <input type="number" step="0.5" min="0" x-model.number="currentOrder.total" :disabled="modalMode === 'view'" required
+                        <input type="number" step="0.5" min="0" x-model.number="currentOrder.total" readonly required
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-black text-[#1E55AA] outline-none focus:border-[#1E55AA] focus:bg-white focus:ring-4 focus:ring-[#1E55AA]/10 disabled:opacity-60 transition-all">
                     </div>
                     <div>
                         <label class="mb-2 block text-sm font-black text-[#1E55AA]">Adelanto ($)</label>
-                        <input type="number" step="0.5" min="0" x-model.number="currentOrder.advance" :disabled="modalMode === 'view'"
+                        <input type="number" step="0.5" min="0" :max="currentOrder.total"
+                            x-model.number="currentOrder.advance"
+                            :disabled="modalMode === 'view'"
+                            @input="
+                                if(currentOrder.advance < 0) currentOrder.advance = 0;
+                                if(currentOrder.advance > currentOrder.total) currentOrder.advance = currentOrder.total;
+                            "
                             class="w-full rounded-2xl border-2 border-slate-100 bg-[#F4F8FC] py-3.5 px-4 font-black text-emerald-500 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 disabled:opacity-60 transition-all">
                     </div>
                     <div>

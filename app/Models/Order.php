@@ -11,12 +11,13 @@ class Order extends Model
     protected $fillable = [
         'sale_id',
         'client_id',
-        'arrival_date',
-        'service_name',
+        'service_id',
+        'quantity',
+        'details',
         'total_price',
         'advance_payment',
         'status',
-        'details',
+        'arrival_date',
         'delivery_date',
     ];
 
@@ -26,6 +27,11 @@ class Order extends Model
     ];
 
     // --- RELACIONES ---
+
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
+    }
 
     /**
      * Todo pedido pertenece estrictamente a un ticket de venta financiero.
