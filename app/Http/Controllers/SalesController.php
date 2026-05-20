@@ -36,7 +36,7 @@ class SalesController extends Controller
     public function apiHistorial()
     {
         // Traemos las ventas con sus detalles, ordenadas de la más reciente a la más antigua
-        $ventas = \App\Models\Sale::with('items')->latest()->get();
+        $ventas = \App\Models\Sale::with('items')->latest()->paginate(10);
 
         return response()->json($ventas);
     }
