@@ -18,11 +18,17 @@ return new class () extends Migration {
             $table->string('phone', 20)->nullable();
             $table->string('email')->nullable();
 
+            // --- Dirección General (Operativa / De Envío) ---
+            $table->string('codigo_postal', 5)->nullable();
+            $table->string('calle')->nullable();
+            $table->string('numero_exterior', 20)->nullable();
+            $table->string('numero_interior', 20)->nullable();
+            $table->string('colonia')->nullable();
+            $table->string('ciudad')->nullable();
+            $table->string('estado')->nullable();
+
             // --- Suscripción ---
-            $table->foreignId('subscription_id')
-                ->nullable()
-                ->constrained('subscriptions')
-                ->nullOnDelete();
+            $table->foreignId('subscription_id')->nullable()->constrained('subscriptions')->nullOnDelete();
             $table->date('end_subscription')->nullable();
 
             // --- Datos Fiscales ---
@@ -31,14 +37,14 @@ return new class () extends Migration {
             $table->string('regimen_fiscal', 10)->nullable();
             $table->boolean('same_billing_address')->default(false);
 
-            // --- Dirección ---
-            $table->string('codigo_postal', 5)->nullable();
-            $table->string('calle')->nullable();
-            $table->string('numero_exterior', 20)->nullable();
-            $table->string('numero_interior', 20)->nullable();
-            $table->string('colonia')->nullable();
-            $table->string('ciudad')->nullable();
-            $table->string('estado')->nullable();
+            // --- Dirección Fiscal (CFDI) ---
+            $table->string('fiscal_codigo_postal', 5)->nullable();
+            $table->string('fiscal_calle')->nullable();
+            $table->string('fiscal_numero_exterior', 20)->nullable();
+            $table->string('fiscal_numero_interior', 20)->nullable();
+            $table->string('fiscal_colonia')->nullable();
+            $table->string('fiscal_ciudad')->nullable();
+            $table->string('fiscal_estado')->nullable();
 
             $table->timestamps();
         });

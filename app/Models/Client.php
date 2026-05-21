@@ -10,22 +10,15 @@ class Client extends Model
 {
     // Campos que permitimos llenar masivamente (Mass Assignment)
     protected $fillable = [
-        'name',
-        'phone',
-        'email', // <-- Agregado
-        'subscription_id',
-        'end_subscription',
-        'rfc',
-        'razon_social',
-        'regimen_fiscal', // <-- Agregado
-        'same_billing_address', // <-- Agregado
-        'codigo_postal',
-        'calle',
-        'numero_exterior',
-        'numero_interior',
-        'colonia',
-        'ciudad',
-        'estado',
+        'name', 'phone', 'email',
+        // Dirección General
+        'codigo_postal', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'ciudad', 'estado',
+        // Suscripción
+        'subscription_id', 'end_subscription',
+        // Datos Fiscales
+        'rfc', 'razon_social', 'regimen_fiscal', 'same_billing_address',
+        // Dirección Fiscal
+        'fiscal_codigo_postal', 'fiscal_calle', 'fiscal_numero_exterior', 'fiscal_numero_interior', 'fiscal_colonia', 'fiscal_ciudad', 'fiscal_estado',
     ];
 
     // Casteo de datos: Le decimos a Laravel que trate este campo como un objeto Carbon (Fecha)

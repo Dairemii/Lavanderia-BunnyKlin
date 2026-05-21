@@ -17,19 +17,33 @@ class ClientService
     {
         return DB::transaction(function () use ($datos, $client) {
 
-            // 1. Limpieza fiscal (como lo teníamos antes)
+            // 1. Lógica de Facturación y Direcciones
             if (empty($datos['wantsBilling']) || $datos['wantsBilling'] == false) {
-                $datos['rfc']            = null;
-                $datos['razon_social']   = null;
+                // Si NO factura, limpiamos todo lo fiscal
+                $datos['rfc'] = null;
+                $datos['razon_social'] = null;
                 $datos['regimen_fiscal'] = null;
                 $datos['same_billing_address'] = false;
-                $datos['codigo_postal']  = null;
-                $datos['calle']           = null;
-                $datos['numero_exterior'] = null;
-                $datos['numero_interior'] = null;
-                $datos['colonia']         = null;
-                $datos['ciudad']          = null;
-                $datos['estado']          = null;
+
+                $datos['fiscal_codigo_postal'] = null;
+                $datos['fiscal_calle'] = null;
+                $datos['fiscal_numero_exterior'] = null;
+                $datos['fiscal_numero_interior'] = null;
+                $datos['fiscal_colonia'] = null;
+                $datos['fiscal_ciudad'] = null;
+                $datos['fiscal_estado'] = null;
+
+            } else {
+                // Si SÍ factura y marcó que usa la misma dirección
+                if (!empty($datos['same_billing_address']) && $datos['same_billing_address'] == true) {
+                    $datos['fiscal_codigo_postal']   = $datos['codigo_postal'] ?? null;
+                    $datos['fiscal_calle']           = $datos['calle'] ?? null;
+                    $datos['fiscal_numero_exterior'] = $datos['numero_exterior'] ?? null;
+                    $datos['fiscal_numero_interior'] = $datos['numero_interior'] ?? null;
+                    $datos['fiscal_colonia']         = $datos['colonia'] ?? null;
+                    $datos['fiscal_ciudad']          = $datos['ciudad'] ?? null;
+                    $datos['fiscal_estado']          = $datos['estado'] ?? null;
+                }
             }
 
             // 2. CÁLCULO DE LA SUSCRIPCIÓN CON PHP (Carbon)
