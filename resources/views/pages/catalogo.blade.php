@@ -98,13 +98,23 @@
                                 {{-- Precio Unitario --}}
                                 <td class="p-5 text-sm font-black text-slate-700" x-text="formatMoney(service.price)"></td>
 
-                                {{-- Badge de Estado (Activo / Inactivo) --}}
+                                {{-- Switch Interactivo de Estado --}}
                                 <td class="p-5 text-center">
-                                    <span class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider w-24"
-                                          :class="service.is_active ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'">
-                                        <div class="w-1.5 h-1.5 rounded-full" :class="service.is_active ? 'bg-emerald-500' : 'bg-slate-400'"></div>
-                                        <span x-text="service.is_active ? 'Activo' : 'Inactivo'"></span>
-                                    </span>
+                                    <button @click="toggleServiceStatus(service)"
+                                        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#1E55AA] focus:ring-offset-2"
+                                        :class="service.is_active ? 'bg-emerald-500' : 'bg-slate-300'"
+                                        role="switch" aria-checked="false">
+                                        <span class="sr-only">Cambiar estado</span>
+                                        {{-- El circulito que se mueve --}}
+                                        <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                                            :class="service.is_active ? 'translate-x-5' : 'translate-x-0'"></span>
+                                    </button>
+
+                                    {{-- Texto de apoyo visual debajo del switch --}}
+                                    <div class="text-[10px] font-black uppercase mt-1 tracking-wider"
+                                         :class="service.is_active ? 'text-emerald-600' : 'text-slate-400'"
+                                         x-text="service.is_active ? 'Activo' : 'Inactivo'">
+                                    </div>
                                 </td>
 
                                 {{-- Acciones --}}

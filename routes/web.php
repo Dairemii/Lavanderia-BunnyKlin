@@ -28,7 +28,10 @@ use App\Http\Controllers\OrderController;
 // =========================================================
 
 Route::get('/', function () {
-    $services = App\Models\Service::query()->where('is_active', true)->get();
+    $services = App\Models\Service::query()
+        ->where('is_active', true)
+        ->where('is_for_orders', false)
+        ->get();
     $supplies = App\Models\Supply::query()->where('is_active', true)->get();
     $subscriptions = App\Models\Subscription::query()->where('is_active', true)->get();
 
@@ -39,6 +42,9 @@ Route::get('/', function () {
             'subscriptions' => $subscriptions
         ]);
 })->name('pos');
+
+// Ruta para cambiar el estado de un elemento del catalogo
+Route::patch('/catalogo/toggle-estado', [App\Http\Controllers\CatalogoController::class, 'toggleEstado'])->name('catalogo.toggle');
 
 // Ruta para guardar cosas del catalogo
 Route::post('/catalogo/guardar', [CatalogoController::class, 'store'])->name('catalogo.store');
